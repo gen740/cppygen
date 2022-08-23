@@ -1,0 +1,15 @@
+# https://taskfile.dev
+
+version: '3'
+
+env:
+  CMAKE_TOOLCHAIN_FILE: "{{.HOME}}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+  CC: /usr/local/opt/llvm/bin/clang
+  CXX: /usr/local/opt/llvm/bin/clang++
+
+tasks:
+  compile:
+    cmds:
+      - cmake . -B build
+      - cmake --build build
+    silent: true

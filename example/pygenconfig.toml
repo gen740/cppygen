@@ -1,0 +1,16 @@
+# 関数の定義が書かれた Shell namespace を持つ source の一覧: 重複は解決しない
+sources = ["shell/*.cpp"]
+
+# class の定義が書かれた Shell namespace を持つ header の一覧: 重複は解決しない
+headers = ["shell/*.hpp"]
+
+# class 定義が書かれた header のシンボルの解決のために書くべきinclude のヘッダー一覧
+include_headers = ["hoge.hpp", "piyo.hpp"]
+
+# 出力ディレクトリ
+output_dir = "build"
+
+# ここでは shell 以下のヘッダーを source で include しているためそのことを宣言してあげる必要がある。
+include_directories = ["shell"]
+
+flags = ["-Wall"]
