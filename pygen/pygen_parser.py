@@ -1,8 +1,9 @@
-from clang.cindex import Cursor, CursorKind, TranslationUnit, AccessSpecifier
-from typing import Dict, List, Tuple, Union
+import copy
+from typing import List
 
-# Config.set_library_path("")
-#
+from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
+
+from .component import Function, StructOrClass, Submodule
 
 
 class Parser:
@@ -11,189 +12,20 @@ class Parser:
     タです。
     """
 
-    class Function(object):
-        """
-        Function を表すクラス。
-        必要な情報を詰め込み、 to_pybind_string で生成する。
-        """
-
-        def __init__(self):
-            self._return_type: str = ""
-            self._arguments: List[Tuple[str, str]] = []
-            self._name: Union[str, None] = None
-            self._full_name: Union[str, None] = None
-            self._namespace: List[str] = []
-            self._description = ""
-            self._module: Union[str, None] = None
-
-        def set_function_name(self, name: str, namespace: List[str]):
-            self._name = name
-            self._namespace = namespace
-            self._full_name = f"{'::'.join(namespace)}::{name}"
-
-        def set_return_type(self, type: str):
-            self._return_type = type
-
-        def set_argument_type(self, type: str):
-            self._return_type = type
-
-        def add_argument_type(self, type: Tuple[str, str]):
-            """
-            (name, type)
-            """
-            self._arguments.append(type)
-
-        def set_description(self, description: str):
-            self._description = description
-
-        def set_module(self, module: str):
-            self._module = module
-
-        def to_pybind_string(self):
-            if self._name == None or self._full_name == None or self._module == None:
-                print("Parse Error Skipping ...")
-                return ""
-            args = [f', pybind11::arg("{i[0]}")' for i in self._arguments]
-            return (
-                f'{self._module}.def("{self._name}", &{self._full_name}, "{self._description}"'
-                f'{"".join(args)});'
-            )
-
-        def to_decl_string(self):
-            if self._name == None or self._full_name == None or self._module == None:
-                print("Parse Error Skipping ...")
-                return ""
-            args = [f"{i[1]} {i[0]}" for i in self._arguments]
-            return (
-                f'namespace {"::".join(self._namespace)} '
-                f'{{ {self._return_type} {self._name}({", ".join(args)}); }}'
-            )
-
-    class Submodule:
-        """
-        Submodule を表すクラス
-        必要な情報を詰め込み、 to_pybind_string で生成する。
-        """
-
-        def __init__(self):
-            self._name: Union[str, None] = None
-            self._description = ""
-            self._parent: Union[str, None] = None
-
-        def set_name(self, name: str):
-            self._name = name
-
-        def set_description(self, description: str):
-            self._description = description
-
-        def set_parent(self, parent: str):
-            self._parent = parent
-
-        def to_pybind_string(self):
-            if self._name == None:
-                print("Parse Error Skipping ...")
-                return ""
-            return f'auto {self._name} = {self._parent}.def_submodule("{self._name}", "{self._description}");'
-
-    class StructOrClass:
-        """
-        Submodule を表すクラス
-        必要な情報を詰め込み、 to_pybind_string で生成する。
-        """
-
-        def __init__(self):
-            self._name: Union[str, None] = None
-            self._namespace: List[str] = []
-            self._members: list[Dict[str, Union[bool, str]]] = []
-            self._member_funcs: list[
-                Dict[str, Union[bool, str, List[Tuple[str, str]]]]
-            ] = []
-            self._module: Union[str, None] = None
-            self._description = ""
-
-        def set_name(self, name: str):
-            self._name = name
-
-        def add_member(
-            self, name: str, type: str, description: str = "", private: bool = False
-        ):
-            self._members.append(
-                {
-                    "name": name,
-                    "type": type,
-                    "description": description,
-                    "private": private,
-                }
-            )
-
-        def add_member_func(
-            self,
-            name: str,
-            type: str,
-            args: List[Tuple[str, str]],  # list[(name, type)]
-            description: str = "",
-            private: bool = False,
-        ):
-            self._member_funcs.append(
-                {
-                    "name": name,
-                    "return_type": type,
-                    "description": description,
-                    "private": private,
-                    "args": args,
-                }
-            )
-
-        def set_module(self, module: str):
-            self._module = module
-
-        def set_description(self, description: str):
-            self._description = description
-
-        def set_namespace(self, namespace: List[str]):
-            self._namespace = namespace
-
-        def get_members(self):
-            return self._members
-
-        def get_member_funcs(self):
-            return self._member_funcs
-
-        def to_pybind_string(self):
-            if self._name == None or self._module == None:
-                print("Parse Error Skipping ...")
-                return ""
-            return (
-                f'pybind11::class_<::{"::".join(self._namespace + [self._name])}>({self._module}, "{self._name}")\n'
-                "\t\t.def(pybind11::init())"
-                ## Member 変数の宣言
-                + "\n".join(
-                    [""]
-                    + [
-                        f'\t\t.def_readwrite("{i["name"]}",'
-                        f' &{"::".join(self._namespace + [self._name])}::{i["name"]}, "{i["description"]}")'
-                        for i in self._members
-                        if not i["private"]
-                    ]
-                )
-                ## Member 関数の宣言
-                + "\n".join(
-                    [""]
-                    + [
-                        f'\t\t.def("{i["name"]}",'
-                        f' &{"::".join(self._namespace + [self._name])}::{i["name"]}, "{i["description"]}")'
-                        for i in self._member_funcs
-                        if not i["private"]
-                    ]
-                )
-                + ";"
-            )
-
-    def __init__(self):
-        self._funcitons: List[Parser.Function] = []
-        self._submodules: List[Parser.Submodule] = []
-        self._structs_and_classes: List[Parser.StructOrClass] = []
+    def __init__(
+        self, *, library_path: str | None = None, library_file: str | None = None
+    ):
+        self._funcitons: List[Function] = []
+        self._submodules: List[Submodule] = []
+        self._structs_and_classes: List[StructOrClass] = []
         self._hpp_includes: List[str] = []
+
+        if library_file != None and library_path != None:
+            raise ValueError(f"Both library_path and library_file cannot be set.")
+        if not library_path is None:
+            Config.set_library_path(library_path)
+        if not library_file is None:
+            Config.set_library_file(library_file)
 
     def _get_tu(self, source: str, lang: str = "c", flags=[]) -> TranslationUnit:
         if flags == None:
@@ -213,17 +45,17 @@ class Parser:
             options=TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD,
         )
 
-    def _extract_functions(self, cu: Cursor, namespace: List[str]):
+    def _extract_functions(self, cu: Cursor, namespace: List[str], module_name: str):
         """
         cu 以下にある関数を抽出する
         """
         for i in list(cu.get_children()):
             i: Cursor
             if i.kind == CursorKind.FUNCTION_DECL and i.is_definition():  # type: ignore
-                func = Parser.Function()
+                func = Function()
                 func.set_return_type(i.result_type.spelling)
                 func.set_function_name(i.spelling, namespace)
-                func.set_module(namespace[-1])
+                func.set_module(module_name)
                 func.set_description(i.brief_comment or "")
                 for j in list(i.get_children()):
                     j: Cursor
@@ -231,7 +63,9 @@ class Parser:
                         func.add_argument_type((j.spelling, j.type.spelling))
                 self._funcitons.append(func)
 
-    def _exract_struct_and_class(self, cu: Cursor, namespace: List[str]):
+    def _extract_struct_and_class(
+        self, cu: Cursor, namespace: List[str], module_name: str
+    ):
         """
         cu 以下にある構造体を抽出する
         """
@@ -239,9 +73,9 @@ class Parser:
             i: Cursor
             # print(i.kind, i.spelling)
             if i.kind == CursorKind.STRUCT_DECL or i.kind == CursorKind.CLASS_DECL:  # type: ignore
-                struct_or_class = Parser.StructOrClass()
+                struct_or_class = StructOrClass()
                 struct_or_class.set_name(i.spelling)
-                struct_or_class.set_module(namespace[-1])
+                struct_or_class.set_module(module_name)
                 struct_or_class.set_namespace(namespace)
                 struct_or_class.set_description(i.brief_comment or "")
                 for j in list(i.get_children()):
@@ -278,26 +112,27 @@ class Parser:
             i: Cursor
 
             # 再起的に関数を抽出する。
-            def visit(x: Cursor, namespace):
+            def visit(x: Cursor, namespace: List[str], module_name: str):
                 if lang == "cpp":
-                    self._extract_functions(x, namespace)
+                    self._extract_functions(x, namespace, module_name)
                 elif lang == "hpp":  # ヘッダーでのみクラスを抽出する。
-                    self._exract_struct_and_class(x, namespace)
+                    self._extract_struct_and_class(x, namespace, module_name)
                 for i in list(x.get_children()):
                     i: Cursor
-                    namespace_in = list(namespace)
+                    namespace_in = copy.copy(namespace)
                     if i.kind == CursorKind.NAMESPACE:  # type: ignore
-                        submod = Parser.Submodule()
+                        submod = Submodule()
                         submod.set_name(i.spelling)
                         submod.set_description(i.brief_comment or "")
-                        self._submodules.append(submod)
-                        submod.set_parent(namespace_in[-1])
+                        submod.set_parent(copy.copy(namespace_in))
+                        if not submod in self._submodules:
+                            self._submodules.append(submod)
                         namespace_in.append(i.spelling)
-                        visit(i, namespace_in)
+                        visit(i, namespace_in, submod.cpp_name)
 
             # トップレベルの Shell namespace を探す
             if i.kind == CursorKind.NAMESPACE and i.spelling == "Shell":  # type: ignore
-                visit(i, ["Shell"])
+                visit(i, ["Shell"], "Shell")
 
     def parse_from_file(self, filename: str, lang: str = "cpp", flags=[]):
         with open(filename, "r") as f:

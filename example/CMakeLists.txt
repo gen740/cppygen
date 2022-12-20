@@ -16,6 +16,7 @@ set(pygen_generated_hpp ${CMAKE_CURRENT_BINARY_DIR}/pygen_generated.hpp)
 set(pygen_generated_cpp ${CMAKE_CURRENT_BINARY_DIR}/pygen_generated.cpp)
 
 find_program(_PYGEN_GENERATOR pygen)
+find_package(Python COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
 
 add_custom_command(
@@ -29,34 +30,38 @@ add_custom_command(
   COMMENT "Generating PyGen Code To ${pygen_generated_hpp}"
   VERBATIM)
 
-add_library(pyshell MODULE ${MAIN_SOURCES} ${SHELL_SOURCES}
+# add_library(pyshell MODULE ${MAIN_SOURCES} ${SHELL_SOURCES}
+#                            ${pygen_generated_cpp})
+pybind11_add_module(pyshell MODULE ${MAIN_SOURCES} ${SHELL_SOURCES}
                            ${pygen_generated_cpp})
 
 target_link_libraries(
   pyshell
-  PRIVATE #
+  PUBLIC #
           pybind11::module #
           pybind11::lto #
           pybind11::windows_extras #
           ${MAIN_LINK_LIBRARIES})
         target_include_directories(pyshell PRIVATE ${CMAKE_CURRENT_LIST_DIR}/shell ${CMAKE_CURRENT_BINARY_DIR})
 
-pybind11_extension(pyshell)
-pybind11_strip(pyshell)
+# pybind11_extension(pyshell)
+# pybind11_strip(pyshell)
 
 set_target_properties(
   pyshell
   PROPERTIES #
-             CXX_VISIBILITY_PRESET "hidden" #
-             CUDA_VISIBILITY_PRESET "hidden")
+    INTERPROCEDURAL_OPTIMIZATION ON
+    CXX_VISIBILITY_PRESET "hidden"
+    VISIBILITY_INLINES_HIDDEN ON
+)
 
 # stub の生成も cmake を用いるといい
-find_program(_MYPY_STUBGEN stubgen)
-add_custom_command(
-  TARGET pyshell POST_BUILD
-  COMMAND ${_MYPY_STUBGEN} ARGS
-  -p pyshell -o ${CMAKE_CURRENT_LIST_DIR}/python/stubs
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-)
+# find_program(_MYPY_STUBGEN stubgen)
+# add_custom_command(
+#   TARGET pyshell POST_BUILD
+#   COMMAND ${_MYPY_STUBGEN} ARGS
+#   -p pyshell -o ${CMAKE_CURRENT_LIST_DIR}/python/stubs
+#   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+# )
 
 # vim:sw=2
