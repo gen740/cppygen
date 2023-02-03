@@ -8,7 +8,9 @@ This generator will be generate c++ code for pybind11, and make it easy to
 write a python module using c++.
 
 ## Installation
-
+```
+pip install pybind11-pygen
+```
 
 ## Env
 
