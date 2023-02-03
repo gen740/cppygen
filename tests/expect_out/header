@@ -1,4 +1,4 @@
-#include "pygen_generated.hpp"
+#include "cppygen_generated.hpp"
 
 #include <pybind11/cast.h>
 #include <pybind11/pybind11.h>
@@ -15,9 +15,9 @@ namespace Shell { auto i(int ); }
 
 
 
-namespace PyGen {
+namespace CPPyGen {
 
-void PyGenExport(pybind11::module_ Shell)
+void CPPyGenExport(pybind11::module_ Shell)
 {
 
         /* Submodule Declarations Start */
@@ -52,8 +52,8 @@ void PyGenExport(pybind11::module_ Shell)
 /* Custom Header Include Start */
 /* Custom Header Include End */
 
-namespace PyGen {
+namespace CPPyGen {
 
-extern void PyGenExport(pybind11::module_ Shell);
+extern void CPPyGenExport(pybind11::module_ Shell);
 
 }

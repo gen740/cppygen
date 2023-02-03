@@ -12,13 +12,13 @@ logger = get_logger("parser")
 
 class Parser:
     """
-    PyGen はヘッダーを解析し、pybind11 用の関数を自動で作り出すコードジェネレー
+    CPPyGen はヘッダーを解析し、pybind11 用の関数を自動で作り出すコードジェネレー
     タです。
     """
 
     def __init__(
         self,
-        namespace: str = "pygen",
+        namespace: str = "cppygen",
         *,
         library_path: str | None = None,
         library_file: str | None = None,
@@ -38,16 +38,16 @@ class Parser:
             Config.set_library_file(library_file)
             return
         if (library_file is None and library_path is None) and (
-            pygen_libclang_path := os.environ.get("PYGEN_LIBCLANG_PATH", None)
+            cppygen_libclang_path := os.environ.get("CPPYGEN_LIBCLANG_PATH", None)
         ) is not None:
-            Config.set_library_file(pygen_libclang_path)
+            Config.set_library_file(cppygen_libclang_path)
             return
 
     def _get_tu(self, source: str, filename: str, flags=[]) -> TranslationUnit:
         if flags == None:
             flags = []
-        if (pygen_flags := os.environ.get("PYGEN_COMPILE_FLAGS", None)) is not None:
-            flags.extend(pygen_flags.split(" "))
+        if (cppygen_flags := os.environ.get("CPPYGEN_COMPILE_FLAGS", None)) is not None:
+            flags.extend(cppygen_flags.split(" "))
         args = list(flags)
         name = "t.c"
         name = filename
@@ -211,8 +211,8 @@ class Parser:
             + "/* Custom Header Include End */\n\n"
             f"{self.to_decl_string()}\n"
             "\n"
-            "namespace PyGen {\n\n"
-            f"static inline void PyGenExport(pybind11::module_ {self._namespace})\n"
+            "namespace CPPyGen {\n\n"
+            f"static inline void CPPyGenExport(pybind11::module_ {self._namespace})\n"
             "{\n\n"
             f"{self.to_submod_string()}\n\n"
             f"{self.to_export_string()}\n\n"
@@ -225,7 +225,7 @@ class Parser:
         hpp_generate と対になる。 Export の関数の実装部分を自動生成するコード
         """
         return (
-            '#include "pygen_generated.hpp"\n\n'
+            '#include "cppygen_generated.hpp"\n\n'
             "#include <pybind11/cast.h>\n"
             "#include <pybind11/pybind11.h>\n"
             "#include <pybind11/pytypes.h>\n"
@@ -233,8 +233,8 @@ class Parser:
             "\n"
             f"{self.to_decl_string()}\n"
             "\n"
-            "namespace PyGen {\n\n"
-            f"void PyGenExport(pybind11::module_ {self._namespace})\n"
+            "namespace CPPyGen {\n\n"
+            f"void CPPyGenExport(pybind11::module_ {self._namespace})\n"
             "{\n\n"
             f"{self.to_submod_string()}\n\n"
             f"{self.to_export_string()}\n\n"
@@ -255,7 +255,7 @@ class Parser:
             "/* Custom Header Include Start */\n"
             + "\n".join([f'#include "{i}"' for i in self._hpp_includes])
             + "/* Custom Header Include End */\n\n"
-            "namespace PyGen {\n\n"
-            f"extern void PyGenExport(pybind11::module_ {self._namespace});\n\n"
+            "namespace CPPyGen {\n\n"
+            f"extern void CPPyGenExport(pybind11::module_ {self._namespace});\n\n"
             "}"
         )

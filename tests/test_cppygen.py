@@ -2,15 +2,15 @@ import platform
 
 import pytest
 
-from pygen.pygen_parser import Parser
+from cppygen.cppygen_parser import Parser
 
 
-def test_pygen_valueerror():
+def test_cppygen_valueerror():
     with pytest.raises(ValueError):
         Parser(library_file="/usr/lib", library_path="/usr/lib")
 
 
-def test_pygen():
+def test_cppygen():
     p = Parser()
 
     p.parse_from_file(
@@ -26,4 +26,4 @@ def test_pygen():
     print(p.hpp_generate())
 
 
-test_pygen()
+test_cppygen()

@@ -1,4 +1,4 @@
-from pygen.component import Function, StructOrClass, Submodule
+from cppygen.component import Function, StructOrClass, Submodule
 
 
 def test_function():

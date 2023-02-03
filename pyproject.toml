@@ -9,14 +9,14 @@ pythonVersion = "3.10"
 pythonPlatform = "Darwin"
 
 [tool.poetry]
-name = "pygen"
+name = "cppygen"
 version = "0.1.0"
 description = "A simple c++ code generator for pybind11"
 readme = "README.md"
 authors = ["Gen740 <keener_slimier_0m@icloud.com>"]
 
 [tool.poetry.scripts]
-pygen = 'pygen.__main__:run'
+cppygen = 'cppygen.__main__:run'
 
 [tool.setuptools.packages.find]
 where = ["."]

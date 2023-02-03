@@ -11,29 +11,29 @@ file(GLOB SHELL_SOURCES shell/*.cpp)
 file(GLOB SHELL_HEADERS shell/*.hpp) # class の定義は header で行い、 Header をパーサーに渡す
 
 # 自動生成
-set(pygen_generate_dir ${CMAKE_CURRENT_BINARY_DIR})
-set(pygen_generated_hpp ${CMAKE_CURRENT_BINARY_DIR}/pygen_generated.hpp)
-set(pygen_generated_cpp ${CMAKE_CURRENT_BINARY_DIR}/pygen_generated.cpp)
+set(cppygen_generate_dir ${CMAKE_CURRENT_BINARY_DIR})
+set(cppygen_generated_hpp ${CMAKE_CURRENT_BINARY_DIR}/cppygen_generated.hpp)
+set(cppygen_generated_cpp ${CMAKE_CURRENT_BINARY_DIR}/cppygen_generated.cpp)
 
-find_program(_PYGEN_GENERATOR pygen)
+find_program(_CPPYGEN_GENERATOR cppygen)
 find_package(Python COMPONENTS Interpreter Development)
 find_package(pybind11 CONFIG)
 
 add_custom_command(
-  OUTPUT ${pygen_generated_hpp} ${pygen_generated_cpp}
+  OUTPUT ${cppygen_generated_hpp} ${cppygen_generated_cpp}
   COMMAND
-    # pygen の設定ファイルと current working directory を設定してあげる。
-    ${_PYGEN_GENERATOR} ARGS #
-    --config_file ${CMAKE_CURRENT_LIST_DIR}/pygenconfig.toml --cwd
+    # cppygen の設定ファイルと current working directory を設定してあげる。
+    ${_CPPYGEN_GENERATOR} ARGS #
+    --config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig.toml --cwd
     ${CMAKE_CURRENT_LIST_DIR}
   DEPENDS ${SHELL_SOURCES}
-  COMMENT "Generating PyGen Code To ${pygen_generated_hpp}"
+  COMMENT "Generating CPPyGen Code To ${cppygen_generated_hpp}"
   VERBATIM)
 
 # add_library(pyshell MODULE ${MAIN_SOURCES} ${SHELL_SOURCES}
-#                            ${pygen_generated_cpp})
+#                            ${cppygen_generated_cpp})
 pybind11_add_module(pyshell MODULE ${MAIN_SOURCES} ${SHELL_SOURCES}
-                           ${pygen_generated_cpp})
+                           ${cppygen_generated_cpp})
 
 target_link_libraries(
   pyshell

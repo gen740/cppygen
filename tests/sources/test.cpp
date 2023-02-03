@@ -5,7 +5,7 @@
 //! INCLUDE THIS HPP
 #include "test.hpp"
 
-namespace pygen {
+namespace cppygen {
 
 void f() {}
 

@@ -1,4 +1,4 @@
-# PYGEN
+# CPPYGEN
 
 Automatic code generation for pybind11.
 
@@ -9,7 +9,7 @@ write a python module using c++.
 
 ## Installation
 ```
-pip install pybind11-pygen
+pip install cppygen
 ```
 
 ## Env
