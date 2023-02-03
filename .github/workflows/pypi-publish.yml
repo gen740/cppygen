@@ -2,17 +2,12 @@ name: Publish distributions to PyPI or TestPyPI
 
 # TestPyPI upload is scheduled in each weekday.
 # PyPI upload is only activated if the release is published.
-# on:
-#   schedule:
-#     - cron: '0 15 * * *'
-#   release:
-#     types:
-#       - published
-
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: '0 15 * * *'
+  release:
+    types:
+      - published
 
 jobs:
   build-n-publish:
@@ -20,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # Not intended for forks.
-    if: github.repository == 'gen740/pygen'
+    if: github.repository == 'gen740/cppygen'
 
     steps:
     - uses: actions/checkout@v3
