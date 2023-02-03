@@ -13,7 +13,10 @@ class Parser:
     """
 
     def __init__(
-        self, *, library_path: str | None = None, library_file: str | None = None
+        self,
+        *,
+        library_path: str | None = None,
+        library_file: str | None = None,
     ):
         self._funcitons: List[Function] = []
         self._submodules: List[Submodule] = []
@@ -106,8 +109,15 @@ class Parser:
     def add_hpp_includes(self, hpp: str):
         self._hpp_includes.append(hpp)
 
-    def parse(self, source: str, lang: str = "cpp", flags=[]):
-        root: Cursor = self._get_tu(source, lang, flags).cursor
+    def parse(self, source: str, lang: str = "cpp", flags=[], with_diagnostic=False):
+        tu: TranslationUnit = self._get_tu(source, lang, flags)
+        if with_diagnostic:
+            for diag in tu.diagnostics:
+                if diag.severity == diag.Fatal:
+                    print(diag.location)
+                    print(diag.spelling)
+                    print(diag.option)
+        root: Cursor = tu.cursor
         for i in list(root.get_children()):
             i: Cursor
 

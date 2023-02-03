@@ -3,51 +3,18 @@
 #include <vector>
 
 //! INCLUDE THIS HPP
-#include "hoge.hpp"
+#include "test.hpp"
 
 namespace Shell {
 
-//! hogehoge Function returns hoge
-bool hogehoge(int hoge) { return hoge; }
+void f() {}
 
-//! SubA module is sub module of Shell
-namespace subA {
+int g(int a, int b) { return 0; }
 
-struct Nyan {
-  int neko;
-  std::string cat;
-  static int inu;
-  double hoge(double x, double y) { return x + y; };
-  enum HOGE { HOGE, FUGA, PIYO };
-};
+// std check
 
-// 継承はなし
-class Wan {
-public:
-  int wanwan;
+auto h(std::string) {}
 
-private:
-  int nyannyan;
-};
-
-auto return_vector(std::vector<double> a) { return a; }
-
-int add(int x, int y) { return x + y; }
-
-namespace subsubA {
-
-std::string piyopiyo() { return "piyopiyo"; }
-
-} // namespace subsubA
-
-} // namespace subA
-
-namespace subB {
-
-void subBhoge() {}
-
-} // namespace subB
-
-void fugafuga() { std::cout << "Fuga" << std::endl; }
+auto i(std::vector<double>) {}
 
 } // namespace Shell
