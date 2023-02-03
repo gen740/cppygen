@@ -1,5 +1,5 @@
 [tool.pyright]
-include = ["template"]
+include = []
 
 exclude = ["**/node_modules", "**/__pycache__"]
 
@@ -9,7 +9,7 @@ pythonVersion = "3.10"
 pythonPlatform = "Darwin"
 
 [tool.poetry]
-name = "pybind11-pygen"
+name = "pygen"
 version = "0.1.0"
 description = "A simple c++ code generator for pybind11"
 readme = "README.md"
@@ -18,6 +18,8 @@ authors = ["Gen740 <keener_slimier_0m@icloud.com>"]
 [tool.poetry.scripts]
 pygen = 'pygen.__main__:run'
 
+[tool.setuptools.packages.find]
+where = ["."]
 
 [tool.poetry.dependencies]
 python = "^3.10"
