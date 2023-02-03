@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Shell {
+namespace pygen {
 
 struct Hoge {
 public:
@@ -11,4 +11,4 @@ private:
   int b = 3;
 };
 
-} // namespace Shell
+} // namespace pygen

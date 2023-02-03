@@ -1,11 +1,10 @@
 import copy
 from typing import List
 
-from clang.cindex import (AccessSpecifier, Config, Cursor, CursorKind,
-                          TranslationUnit)
+from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
 
 from .component import Function, StructOrClass, Submodule
-from .logging import ERROR, WARNING, get_logger
+from .logging import get_logger
 
 logger = get_logger("parser")
 
@@ -18,6 +17,7 @@ class Parser:
 
     def __init__(
         self,
+        namespace: str = "pygen",
         *,
         library_path: str | None = None,
         library_file: str | None = None,
@@ -26,6 +26,7 @@ class Parser:
         self._submodules: List[Submodule] = []
         self._structs_and_classes: List[StructOrClass] = []
         self._hpp_includes: List[str] = []
+        self._namespace = namespace
 
         if library_file != None and library_path != None:
             raise ValueError(f"Both library_path and library_file cannot be set.")
@@ -150,9 +151,9 @@ class Parser:
                         namespace_in.append(i.spelling)
                         visit(i, namespace_in, submod.cpp_name)
 
-            # トップレベルの Shell namespace を探す
-            if i.kind == CursorKind.NAMESPACE and i.spelling == "Shell":  # type: ignore
-                visit(i, ["Shell"], "Shell")
+            # トップレベルの namespace を探す
+            if i.kind == CursorKind.NAMESPACE and i.spelling == self._namespace:  # type: ignore
+                visit(i, [self._namespace], self._namespace)
 
     def parse_from_file(self, filename: str, lang: str = "cpp", flags=[]):
         with open(filename, "r") as f:
@@ -201,7 +202,7 @@ class Parser:
             f"{self.to_decl_string()}\n"
             "\n"
             "namespace PyGen {\n\n"
-            "static inline void PyGenExport(pybind11::module_ Shell)\n"
+            f"static inline void PyGenExport(pybind11::module_ {self._namespace})\n"
             "{\n\n"
             f"{self.to_submod_string()}\n\n"
             f"{self.to_export_string()}\n\n"
@@ -223,7 +224,7 @@ class Parser:
             f"{self.to_decl_string()}\n"
             "\n"
             "namespace PyGen {\n\n"
-            "void PyGenExport(pybind11::module_ Shell)\n"
+            f"void PyGenExport(pybind11::module_ {self._namespace})\n"
             "{\n\n"
             f"{self.to_submod_string()}\n\n"
             f"{self.to_export_string()}\n\n"
@@ -245,6 +246,6 @@ class Parser:
             + "\n".join([f'#include "{i}"' for i in self._hpp_includes])
             + "/* Custom Header Include End */\n\n"
             "namespace PyGen {\n\n"
-            "extern void PyGenExport(pybind11::module_ Shell);\n\n"
+            f"extern void PyGenExport(pybind11::module_ {self._namespace});\n\n"
             "}"
         )
