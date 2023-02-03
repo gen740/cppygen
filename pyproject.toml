@@ -1,4 +1,4 @@
-[tool.pyright] # more detail -> https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+[tool.pyright]
 include = ["template"]
 
 exclude = ["**/node_modules", "**/__pycache__"]
@@ -9,9 +9,10 @@ pythonVersion = "3.10"
 pythonPlatform = "Darwin"
 
 [tool.poetry]
-name = "pygen"
+name = "pybind11-pygen"
 version = "0.1.0"
-description = ""
+description = "A simple c++ code generator for pybind11"
+readme = "README.md"
 authors = ["Gen740 <keener_slimier_0m@icloud.com>"]
 
 [tool.poetry.scripts]

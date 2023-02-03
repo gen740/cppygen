@@ -3,7 +3,7 @@
 version: '3'
 
 env:
-  CMAKE_TOOLCHAIN_FILE: "{{.HOME}}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+  # CMAKE_TOOLCHAIN_FILE: "{{.HOME}}/vcpkg/scripts/buildsystems/vcpkg.cmake"
   CC: /usr/local/opt/llvm/bin/clang
   CXX: /usr/local/opt/llvm/bin/clang++
 

@@ -1,4 +1,5 @@
 import copy
+import os
 from typing import List
 
 from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
@@ -32,12 +33,21 @@ class Parser:
             raise ValueError(f"Both library_path and library_file cannot be set.")
         if not library_path is None:
             Config.set_library_path(library_path)
+            return
         if not library_file is None:
             Config.set_library_file(library_file)
+            return
+        if (library_file is None and library_path is None) and (
+            pygen_libclang_path := os.environ.get("PYGEN_LIBCLANG_PATH", None)
+        ) is not None:
+            Config.set_library_file(pygen_libclang_path)
+            return
 
     def _get_tu(self, source: str, filename: str, flags=[]) -> TranslationUnit:
         if flags == None:
             flags = []
+        if (pygen_flags := os.environ.get("PYGEN_COMPILE_FLAGS", None)) is not None:
+            flags.extend(pygen_flags.split(" "))
         args = list(flags)
         name = "t.c"
         name = filename

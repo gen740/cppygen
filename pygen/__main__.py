@@ -32,7 +32,7 @@ def run():
 
     output_dir = cwd.joinpath(configs["output_dir"])
 
-    pygen = Parser()
+    pygen = Parser(namespace=configs["search_namespace"])
 
     flags = configs["flags"]
     for i in configs["include_directories"]:
