@@ -3,8 +3,6 @@ name: Publish distributions to PyPI or TestPyPI
 # TestPyPI upload is scheduled in each weekday.
 # PyPI upload is only activated if the release is published.
 on:
-  schedule:
-    - cron: '0 15 * * *'
   release:
     types:
       - published
@@ -33,7 +31,7 @@ jobs:
 
     - name: Publish distribution to TestPyPI
       # The following upload action cannot be executed in the forked repository.
-      if: (github.event_name == 'schedule') || (github.event_name == 'release')
+      if: github.event_name == 'release'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
