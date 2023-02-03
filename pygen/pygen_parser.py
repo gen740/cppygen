@@ -1,7 +1,8 @@
 import copy
 from typing import List
 
-from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
+from clang.cindex import (AccessSpecifier, Config, Cursor, CursorKind,
+                          TranslationUnit)
 
 from .component import Function, StructOrClass, Submodule
 from .logging import ERROR, WARNING, get_logger

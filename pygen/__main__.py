@@ -1,6 +1,8 @@
 import argparse
-import toml
 import pathlib
+
+import toml
+
 from pygen.pygen_parser import Parser
 
 
