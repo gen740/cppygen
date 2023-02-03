@@ -20,30 +20,29 @@ def test_pygen_valueerror():
 
 
 def test_pygen():
-    with open("./tests/sources/test.cpp", "r") as f:
-        data = f.read()
+    # with open("./tests/sources/test.cpp", "r") as f:
+    #     data = f.read()
 
     if platform.system() == "Linux":
         p = Parser()
-        p.parse(
-            data,
-            lang="cpp",
-            flags=["-Itests/sources"],
-            with_diagnostic=True,
-        )
     else:
         p = Parser(library_file="/usr/local/opt/llvm/lib/libclang.dylib")
-        p.parse(
-            data,
-            lang="cpp",
-            flags=["-I/usr/local/opt/llvm/lib/clang/15.0.7/include", "-Itests/sources"],
-            with_diagnostic=True,
-        )
 
-    with open("./tests/sources/test.hpp", "r") as f:
-        data = f.read()
-
-    p.parse(data, lang="hpp", flags=[], with_diagnostic=True)
+    p.parse_from_file(
+        "./tests/sources/test.cpp",
+        lang="cpp",
+        flags=["-I/usr/local/opt/llvm/lib/clang/15.0.7/include"],
+    )
+    p.parse_from_file(
+        "./tests/sources/test.hpp",
+        lang="hpp",
+        flags=["-I/usr/local/opt/llvm/lib/clang/15.0.7/include"],
+    )
+    #
+    # with open("./tests/sources/test.hpp", "r") as f:
+    #     data = f.read()
+    #
+    # p.parse(data, lang="hpp", flags=[], with_diagnostic=True)
 
     print(p.cpp_generate())
     print(p.hpp_generate())

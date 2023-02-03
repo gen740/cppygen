@@ -4,6 +4,9 @@ from typing import List
 from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
 
 from .component import Function, StructOrClass, Submodule
+from .logging import ERROR, WARNING, get_logger
+
+logger = get_logger("parser")
 
 
 class Parser:
@@ -30,17 +33,12 @@ class Parser:
         if not library_file is None:
             Config.set_library_file(library_file)
 
-    def _get_tu(self, source: str, lang: str = "c", flags=[]) -> TranslationUnit:
+    def _get_tu(self, source: str, filename: str, flags=[]) -> TranslationUnit:
         if flags == None:
             flags = []
         args = list(flags)
         name = "t.c"
-        if lang == "cpp":
-            name = "t.cpp"
-            # args.append("-std=c++11")
-        if lang == "hpp":
-            name = "t.hpp"
-            # args.append("-std=c++11")
+        name = filename
         return TranslationUnit.from_source(
             name,
             args,
@@ -109,14 +107,25 @@ class Parser:
     def add_hpp_includes(self, hpp: str):
         self._hpp_includes.append(hpp)
 
-    def parse(self, source: str, lang: str = "cpp", flags=[], with_diagnostic=False):
-        tu: TranslationUnit = self._get_tu(source, lang, flags)
+    def parse(
+        self,
+        source: str,
+        filename: str,
+        lang: str = "cpp",
+        flags=[],
+        with_diagnostic=False,
+    ):
+        tu: TranslationUnit = self._get_tu(source, filename, flags)
         if with_diagnostic:
+            has_error = False
             for diag in tu.diagnostics:
                 if diag.severity == diag.Fatal:
-                    print(diag.location)
-                    print(diag.spelling)
-                    print(diag.option)
+                    has_error = True
+                    logger.error(
+                        f"""{diag.location}\n{diag.spelling}\n{diag.option}\n """
+                    )
+            if has_error:
+                exit(1)
         root: Cursor = tu.cursor
         for i in list(root.get_children()):
             i: Cursor
@@ -147,7 +156,7 @@ class Parser:
     def parse_from_file(self, filename: str, lang: str = "cpp", flags=[]):
         with open(filename, "r") as f:
             data = f.read()
-        self.parse(data, lang, flags)
+        self.parse(data, filename, lang, flags, with_diagnostic=True)
 
     def to_decl_string(self):
         return (
