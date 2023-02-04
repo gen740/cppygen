@@ -1,0 +1,11 @@
+mode: "SourceOnly"
+
+search_namespace: "Shell" # default: pygen
+sources: ["shell/*.cpp"]
+headers: ["shell/*.hpp"]
+
+include_headers: ["hoge.hpp", "piyo.hpp"]
+output_dir: "build"
+
+include_directories: ["shell"]
+flags: ["-Wall"]

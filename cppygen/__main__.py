@@ -24,17 +24,18 @@ def run():
 
     sources = []
     for i in configs["sources"]:
-        sources.extend([i for i in cwd.glob(i)])
+        sources.extend([j for j in cwd.glob(i)])
 
     headers = []
     for i in configs["headers"]:
-        headers.extend([i for i in cwd.glob(i)])
+        headers.extend([j for j in cwd.glob(i)])
 
     output_dir = cwd.joinpath(configs["output_dir"])
 
     cppygen = Parser(namespace=configs["search_namespace"])
 
     flags = configs["flags"]
+
     for i in configs["include_directories"]:
         flags.append(f"-I{str(cwd.joinpath(i).absolute())}")
         print(f"-I{str(cwd.joinpath(i).absolute())}")

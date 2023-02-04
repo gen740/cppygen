@@ -66,7 +66,7 @@ class Parser:
             if i.kind == CursorKind.FUNCTION_DECL and i.is_definition():  # type: ignore
                 func = Function()
                 func.set_return_type(i.result_type.spelling)
-                func.set_function_name(i.spelling, namespace)
+                func.set_name(i.spelling, namespace)
                 func.set_module(module_name)
                 func.set_description(i.brief_comment or "")
                 for j in list(i.get_children()):
@@ -86,9 +86,8 @@ class Parser:
             # print(i.kind, i.spelling)
             if i.kind == CursorKind.STRUCT_DECL or i.kind == CursorKind.CLASS_DECL:  # type: ignore
                 struct_or_class = StructOrClass()
-                struct_or_class.set_name(i.spelling)
+                struct_or_class.set_name(i.spelling, namespace)
                 struct_or_class.set_module(module_name)
-                struct_or_class.set_namespace(namespace)
                 struct_or_class.set_description(i.brief_comment or "")
                 for j in list(i.get_children()):
                     j: Cursor

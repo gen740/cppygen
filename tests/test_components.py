@@ -4,9 +4,10 @@ from cppygen.component import Function, StructOrClass, Submodule
 def test_function():
     fun = Function()
 
-    fun.set_function_name("test_function1", ["Shell", "foo"])
+    fun.set_name("test_function1", ["Shell", "foo"])
     assert fun._name == "test_function1"
     assert fun._namespace == ["Shell", "foo"]
+    assert fun._full_name == "Shell::foo::test_function1"
 
     fun.set_description("this is test function1")
     assert fun._description == "this is test function1"
@@ -69,17 +70,16 @@ def test_submod_compare():
 def test_struct_or_class():
     soc = StructOrClass()
 
-    soc.set_name("class1")
+    soc.set_name("class1", ["mod1", "mod2"])
     assert soc._name == "class1"
+    assert soc._namespace == ["mod1", "mod2"]
+    assert soc._full_name == "mod1::mod2::class1"
 
     soc.set_description("this is class 1")
     assert soc._description == "this is class 1"
 
     soc.set_module("mod1_mod2")
     assert soc._module == "mod1_mod2"
-
-    soc.set_namespace(["mod1", "mod2"])
-    assert soc._namespace == ["mod1", "mod2"]
 
     soc.add_member("member1", "int", "this is the member1")
     soc.add_member("member2", "std::array<int, 5>", "this is the member2")
