@@ -3,7 +3,8 @@
 version: '3'
 
 env:
-  # CMAKE_TOOLCHAIN_FILE: "{{.HOME}}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+  CPPYGEN_COMPILE_FLAGS: -isystem/usr/local/opt/llvm/lib/clang/15.0.7/include -Wall -Wextra
+  CPPYGEN_LIBCLANG_PATH: /usr/local/opt/llvm/lib/libclang.dylib
   CC: /usr/local/opt/llvm/bin/clang
   CXX: /usr/local/opt/llvm/bin/clang++
 

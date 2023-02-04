@@ -19,7 +19,7 @@ class Parser:
 
     def __init__(
         self,
-        namespace: str = "cppygen",
+        namespace: str | None = None,
         *,
         library_path: str | None = None,
         library_file: str | None = None,
@@ -28,7 +28,7 @@ class Parser:
         self._submodules: List[Submodule] = []
         self._structs_and_classes: List[StructOrClass] = []
         self._hpp_includes: List[str] = []
-        self._namespace = namespace
+        self._namespace = namespace or "cppygen"
 
         if library_file != None and library_path != None:
             raise ValueError(f"Both library_path and library_file cannot be set.")
@@ -49,6 +49,7 @@ class Parser:
             flags = []
         if (cppygen_flags := os.environ.get("CPPYGEN_COMPILE_FLAGS", None)) is not None:
             flags.extend(cppygen_flags.split(" "))
+            print(cppygen_flags.split(" "))
         args = list(flags)
         name = filename
         return TranslationUnit.from_source(
@@ -137,10 +138,14 @@ class Parser:
         if with_diagnostic:
             has_error = False
             for diag in tu.diagnostics:
-                if diag.severity == diag.Fatal:
+                if diag.severity in [diag.Fatal, diag.Error]:
                     has_error = True
                     logger.error(
-                        f"""{diag.location}\n{diag.spelling}\n{diag.option}\n """
+                        f"{diag.location.file}:{diag.location.line}:{diag.location.column}: warining: {diag.spelling} [{diag.option}]"
+                    )
+                if diag.severity == diag.Warning:
+                    logger.warn(
+                        f"{diag.location.file}:{diag.location.line}:{diag.location.column}: warining: {diag.spelling} [{diag.option}]"
                     )
             if has_error:
                 exit(1)

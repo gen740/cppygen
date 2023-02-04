@@ -3,8 +3,9 @@
 version: '3'
 
 env:
-  CPPYGEN_COMPILE_FLAGS: -isystem/Library/Developer/CommandLineTools/usr/lib/swift/clang/include
-  CPPYGEN_LIBCLANG_PATH: /Library/Developer/CommandLineTools/usr/lib/libclang.dylib
+  # CPPYGEN_COMPILE_FLAGS: -isystem/usr/local/opt/llvm/lib/clang/15.0.7/include -isystem/Library/Developer/CommandLineTools/usr/lib/swift/clang/include
+  CPPYGEN_COMPILE_FLAGS: -isystem/usr/local/opt/llvm/lib/clang/15.0.7/include
+  CPPYGEN_LIBCLANG_PATH: /usr/local/opt/llvm/lib/libclang.dylib
 
 tasks:
   test:
