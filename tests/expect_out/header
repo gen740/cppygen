@@ -1,47 +1,3 @@
-#include "cppygen_generated.hpp"
-
-#include <pybind11/cast.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/pytypes.h>
-#include <pybind11/stl.h>
-
-
-/* Function Declarations Start */
-namespace Shell { void f(); }
-namespace Shell { int g(int a, int b); }
-namespace Shell { void h(std::string ); }
-namespace Shell { auto i(int ); }
-/* Function Declarations End */
-
-
-
-namespace CPPyGen {
-
-void CPPyGenExport(pybind11::module_ Shell)
-{
-
-        /* Submodule Declarations Start */
-        /* Submodule Declarations End */
-
-
-
-        /* Function Export Start */
-        Shell.def("f", &Shell::f, "");
-        Shell.def("g", &Shell::g, "", pybind11::arg("a"), pybind11::arg("b"));
-        Shell.def("h", &Shell::h, "", pybind11::arg(""));
-        Shell.def("i", &Shell::i, "", pybind11::arg(""));
-        /* Function Export End */
-
-        /* Structs and Classes Export Start */
-        pybind11::class_<::Shell::Hoge>(Shell, "Hoge")
-                .def(pybind11::init())
-                .def_readwrite("a", &Shell::Hoge::a, "");
-        /* Structs and Classes Export End */
-
-
-
-};
-}
 #pragma once
 
 #include <pybind11/cast.h>
@@ -54,6 +10,6 @@ void CPPyGenExport(pybind11::module_ Shell)
 
 namespace CPPyGen {
 
-extern void CPPyGenExport(pybind11::module_ Shell);
+extern void CPPyGenExport(pybind11::module_ cppygen);
 
 }

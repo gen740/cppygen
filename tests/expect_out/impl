@@ -1,0 +1,44 @@
+#include "cppygen_generated.hpp"
+
+#include <pybind11/cast.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/pytypes.h>
+#include <pybind11/stl.h>
+
+
+/* Function Declarations Start */
+namespace cppygen { void f(); }
+namespace cppygen { int g(int a, int b); }
+namespace cppygen { void h(std::string ); }
+namespace cppygen { void i(std::vector<double> ); }
+/* Function Declarations End */
+
+
+
+namespace CPPyGen {
+
+void CPPyGenExport(pybind11::module_ cppygen)
+{
+
+	/* Submodule Declarations Start */
+	/* Submodule Declarations End */
+
+
+
+	/* Function Export Start */
+	cppygen.def("f", &cppygen::f, "");
+	cppygen.def("g", &cppygen::g, "", pybind11::arg("a"), pybind11::arg("b"));
+	cppygen.def("h", &cppygen::h, "", pybind11::arg(""));
+	cppygen.def("i", &cppygen::i, "", pybind11::arg(""));
+	/* Function Export End */
+
+	/* Structs and Classes Export Start */
+	pybind11::class_<::cppygen::Hoge>(cppygen, "Hoge")
+		.def(pybind11::init())
+		.def_readwrite("a", &cppygen::Hoge::a, "");
+	/* Structs and Classes Export End */
+
+
+
+};
+}

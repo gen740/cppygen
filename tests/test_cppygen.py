@@ -22,8 +22,8 @@ def test_cppygen():
         lang="hpp",
     )
 
-    print(p.cpp_generate())
-    print(p.hpp_generate())
+    with open("./tests/expect_out/header", "r") as f:
+        assert f.read() == f"{p.hpp_generate()}\n"
 
-
-test_cppygen()
+    with open("./tests/expect_out/impl", "r") as f:
+        assert f.read() == f"{p.cpp_generate()}\n"

@@ -62,6 +62,12 @@ class Function(object):
             f'{{ {self._return_type} {self._name}({", ".join(args)}); }}'
         )
 
+    def __eq__(self, obj):
+        if isinstance(obj, Function):
+            return self._full_name == obj._full_name
+        else:
+            return False
+
 
 class Submodule:
     """
