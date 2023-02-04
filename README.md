@@ -12,6 +12,23 @@ write a python module using c++.
 pip install cppygen
 ```
 
+## Usage Guide
+
+After installing cppygen, you can use `cppygen` command.
+
+```
+cppygen --config_file /path/to/cppygenconfig.toml --cwd /path/to/cwd
+```
+
+This command will load config file, and parse C++ code and generate
+C++ pybind11 Code.
+
+## Config
+<!-- TODO -->
+
+## Examples
+See the `examples` directry for sample projects.
+
 ## Env
 
 ```bash

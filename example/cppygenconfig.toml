@@ -1,4 +1,3 @@
-# 
 search_namespace = "Shell" # default: pygen
 
 # 関数の定義が書かれた Shell namespace を持つ source の一覧: 重複は解決しない
