@@ -26,8 +26,8 @@ void CPPyGenExport(pybind11::module_ cppygen)
 
 
 	/* Function Export Start */
-	cppygen.def("f", &cppygen::f, "");
-	cppygen.def("g", &cppygen::g, "", pybind11::arg("a"), pybind11::arg("b"));
+	cppygen.def("f", &cppygen::f, "foo");
+	cppygen.def("pyg", &cppygen::g, "", pybind11::arg("a"), pybind11::arg("b"));
 	cppygen.def("h", &cppygen::h, "", pybind11::arg(""));
 	cppygen.def("i", &cppygen::i, "", pybind11::arg(""));
 	/* Function Export End */

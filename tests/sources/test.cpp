@@ -7,8 +7,14 @@
 
 namespace cppygen {
 
+/**
+ * description: foo
+ **/
 void f() {}
 
+/**
+ * pyname: pyg
+ **/
 int g(int a, int b) { return 0; }
 
 // std check
@@ -17,4 +23,4 @@ auto h(std::string) {}
 
 auto i(std::vector<double>) {}
 
-} // namespace Shell
+} // namespace cppygen

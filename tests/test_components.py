@@ -31,6 +31,12 @@ def test_function():
         == """Shell_foo.def("test_function1", &Shell::foo::test_function1, "this is test function1", pybind11::arg("arg1"), pybind11::arg("arg2"));"""
     )
 
+    fun.pyname = "__str__"
+
+    assert (
+        fun.to_pybind_string()
+        == """Shell_foo.def("__str__", &Shell::foo::test_function1, "this is test function1", pybind11::arg("arg1"), pybind11::arg("arg2"));"""
+    )
 
 def test_submodule():
     submodule = Submodule()

@@ -1,5 +1,6 @@
 import copy
 import os
+import re
 from typing import List
 
 from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
@@ -68,7 +69,15 @@ class Parser:
                 func.set_return_type(i.result_type.spelling)
                 func.set_name(i.spelling, namespace)
                 func.set_module(module_name)
-                func.set_description(i.brief_comment or "")
+
+                # extract comment string
+                raw_comment = i.raw_comment or ""
+                pyname = re.search(r"pyname: *(.*)", raw_comment)
+                description = re.search(r"description: *(.*)", raw_comment)
+                if pyname is not None:
+                    func.pyname = pyname[1]
+                func.set_description(description and description[1] or "")
+
                 for j in list(i.get_children()):
                     j: Cursor
                     if j.kind == CursorKind.PARM_DECL:  # type: ignore
@@ -83,7 +92,6 @@ class Parser:
         """
         for i in list(cu.get_children()):
             i: Cursor
-            # print(i.kind, i.spelling)
             if i.kind == CursorKind.STRUCT_DECL or i.kind == CursorKind.CLASS_DECL:  # type: ignore
                 struct_or_class = StructOrClass()
                 struct_or_class.set_name(i.spelling, namespace)

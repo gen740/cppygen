@@ -9,5 +9,5 @@ env:
 tasks:
   test:
     cmds:
-      - pytest -vv
+      - pytest -vvs
     silent: true

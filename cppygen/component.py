@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 
 class Function(object):
@@ -10,12 +10,12 @@ class Function(object):
     def __init__(self):
         self._return_type: str = ""
         self._arguments: List[Tuple[str, str]] = []
-        self._name: Union[str, None] = None
-        self._full_name: Union[str, None] = None
+        self._name: str | None = None
+        self._full_name: str | None = None
         self._namespace: List[str] = []
         self._description = ""
-        self._module: Union[str, None] = None
-        self._dunder: bool = False
+        self._module: str | None = None
+        self._pyname: str | None = None
 
     def set_name(self, name: str, namespace: List[str]):
         self._name = name
@@ -32,12 +32,12 @@ class Function(object):
         self._arguments = types
 
     @property
-    def dunder(self):
-        self._dunder
+    def pyname(self):
+        self._pyname
 
-    @dunder.setter
-    def dunder(self, dunder: bool):
-        self._dunder = dunder
+    @pyname.setter
+    def pyname(self, python_name: str):
+        self._pyname = python_name
 
     def add_argument_type(self, type: Tuple[str, str]):
         """
@@ -56,10 +56,16 @@ class Function(object):
             print("Parse Error Skipping ...")
             return ""
         args = [f', pybind11::arg("{i[0]}")' for i in self._arguments]
-        return (
-            f'{self._module}.def("{self._name}", &{self._full_name}, "{self._description}"'
-            f'{"".join(args)});'
-        )
+        if self._pyname is not None:
+            return (
+                f'{self._module}.def("{self._pyname}", &{self._full_name}, "{self._description}"'
+                f'{"".join(args)});'
+            )
+        else:
+            return (
+                f'{self._module}.def("{self._name}", &{self._full_name}, "{self._description}"'
+                f'{"".join(args)});'
+            )
 
     def to_decl_string(self):
         if self._name == None or self._full_name == None or self._module == None:
@@ -85,13 +91,11 @@ class StructOrClass:
     """
 
     def __init__(self):
-        self._name: Union[str, None] = None
+        self._name: str | None = None
         self._namespace: List[str] = []
-        self._members: list[Dict[str, Union[bool, str]]] = []
-        self._member_funcs: list[
-            Dict[str, Union[bool, str, List[Tuple[str, str]]]]
-        ] = []
-        self._module: Union[str, None] = None
+        self._members: list[Dict[str, bool | str]] = []
+        self._member_funcs: list[Dict[str, bool | str | List[Tuple[str, str]]]] = []
+        self._module: str | None = None
         self._description = ""
 
     def set_name(self, name: str, namespace: List[str]):
@@ -179,7 +183,7 @@ class Submodule:
     """
 
     def __init__(self):
-        self._name: Union[str, None] = None
+        self._name: str | None = None
         self._description = ""
         self._parents: List[str] = []
 

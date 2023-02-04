@@ -29,6 +29,17 @@ C++ pybind11 Code.
 ## Examples
 See the `examples` directry for sample projects.
 
+## Attribute
+
+### Function
+```cpp
+/**
+ * pyname python_name
+ * description 
+ * return_value_policy value
+ **/
+```
+
 ## Env
 
 ```bash
