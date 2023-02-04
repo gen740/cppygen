@@ -49,7 +49,6 @@ class Parser:
         if (cppygen_flags := os.environ.get("CPPYGEN_COMPILE_FLAGS", None)) is not None:
             flags.extend(cppygen_flags.split(" "))
         args = list(flags)
-        name = "t.c"
         name = filename
         return TranslationUnit.from_source(
             name,

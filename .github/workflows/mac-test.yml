@@ -40,5 +40,5 @@ jobs:
       run: |
         pytest
       env:
-        CPPYGEN_COMPILE_FLAGS: -isystem/Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/include
+        CPPYGEN_COMPILE_FLAGS: -isystem/Library/Developer/CommandLineTools/usr/lib/swift/clang/include
         CPPYGEN_LIBCLANG_PATH: /Library/Developer/CommandLineTools/usr/lib/libclang.dylib

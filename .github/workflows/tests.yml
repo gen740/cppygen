@@ -6,10 +6,6 @@ on:
       - main
   pull_request: {}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/master' && github.run_number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   tests:
     if: github.repository == 'gen740/cppygen'
