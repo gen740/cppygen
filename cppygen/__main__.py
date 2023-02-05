@@ -67,7 +67,6 @@ def run():
 
     flags.extend([i for i in (args.flags or "").split(";")])
     flags.extend([f"-I{i}" for i in (args.include_directories or "").split(";")])
-    print(flags)
 
     for i in sources:
         cppygen.parse_from_file(i, lang="cpp", flags=configs.get("flags") or [])
