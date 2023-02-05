@@ -27,41 +27,42 @@ def run():
     cwd = pathlib.Path(args.cwd)
 
     sources = []
-    if configs["sources"] is None:
+    if (config_sources := configs.get("sources")) is None:
         logger.error("Please Specify the sources field in config file")
         exit(1)
-    for i in configs["sources"]:
+    for i in config_sources:
         sources.extend([j for j in cwd.glob(i)])
 
     headers = []
-    if configs["headers"] is None:
+    if (config_headers := configs.get("headers")) is None:
         logger.error("Please Specify the headers field in config file")
         exit(1)
-    for i in configs["headers"]:
+    for i in config_headers:
         headers.extend([j for j in cwd.glob(i)])
 
-    if configs["output_dir"] is None:
+    if (config_output_dir := configs.get("output_dir")) is None:
         logger.error("Please Specify the output_dir field in config file")
         exit(1)
-    output_dir = cwd.joinpath(configs["output_dir"])
+    output_dir = cwd.joinpath(config_output_dir)
 
     cppygen = Parser(
-        namespace=configs["search_namespace"], library_file=configs["libclang_path"]
+        namespace=configs.get("search_namespace"),
+        library_file=configs.get("libclang_path"),
     )
 
-    flags = configs["flags"] or []
+    flags = configs.get("flags") or []
 
-    for i in configs["include_directories"] or []:
+    for i in configs.get("include_directories") or []:
         flags.append(f"-I{str(cwd.joinpath(i).absolute())}")
         print(f"-I{str(cwd.joinpath(i).absolute())}")
 
     for i in sources:
-        cppygen.parse_from_file(i, lang="cpp", flags=configs["flags"])
+        cppygen.parse_from_file(i, lang="cpp", flags=configs.get("flags") or [])
 
     for i in headers:
-        cppygen.parse_from_file(i, lang="hpp", flags=configs["flags"])
+        cppygen.parse_from_file(i, lang="hpp", flags=configs.get("flags") or [])
 
-    for i in configs["include_headers"] or []:
+    for i in configs.get("include_headers") or []:
         cppygen.add_hpp_includes(i)
 
     with open(str(output_dir) + "/cppygen_generated.hpp", "w") as f:

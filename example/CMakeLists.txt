@@ -15,16 +15,18 @@ find_package(pybind11 CONFIG)
 # Auto Generation
 set(cppygen_generated_hpp ${CMAKE_CURRENT_BINARY_DIR}/cppygen_generated.hpp)
 set(cppygen_generated_cpp ${CMAKE_CURRENT_BINARY_DIR}/cppygen_generated.cpp)
+set(cppygen_config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig.toml)
 
 find_program(_CPPYGEN_GENERATOR cppygen)
+message(${cppygen_config_file})
 
 add_custom_command(
   OUTPUT ${cppygen_generated_hpp} ${cppygen_generated_cpp}
   COMMAND
     ${_CPPYGEN_GENERATOR} ARGS #
-    --config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig.toml #
+    --config_file ${cppygen_config_file}#
     --cwd ${CMAKE_CURRENT_LIST_DIR}
-  DEPENDS ${SHELL_SOURCES}
+  DEPENDS ${SHELL_SOURCES} ${cppygen_config_file}
   COMMENT
     "Generating CPPyGen Code To ${cppygen_generated_hpp} and ${cppygen_generated_cpp}"
   VERBATIM)
