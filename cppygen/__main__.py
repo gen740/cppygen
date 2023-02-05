@@ -20,10 +20,20 @@ def run():
         "--cwd", required=True, type=str, help="Current Working Directory"
     )
 
+    parser.add_argument(
+        "--include_directories",
+        required=False,
+        type=str,
+        help="include_directories for cmake project",
+    )
+
+    parser.add_argument(
+        "--flags", required=False, type=str, help="flags for cmake project"
+    )
+
     args = parser.parse_args()
 
     configs = toml.load(args.config_file)
-
     cwd = pathlib.Path(args.cwd)
 
     sources = []
@@ -54,7 +64,10 @@ def run():
 
     for i in configs.get("include_directories") or []:
         flags.append(f"-I{str(cwd.joinpath(i).absolute())}")
-        print(f"-I{str(cwd.joinpath(i).absolute())}")
+
+    flags.extend([i for i in (args.flags or "").split(";")])
+    flags.extend([f"-I{i}" for i in (args.include_directories or "").split(";")])
+    print(flags)
 
     for i in sources:
         cppygen.parse_from_file(i, lang="cpp", flags=configs.get("flags") or [])

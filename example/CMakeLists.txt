@@ -25,7 +25,8 @@ add_custom_command(
   COMMAND
     ${_CPPYGEN_GENERATOR} ARGS #
     --config_file ${cppygen_config_file}#
-    --cwd ${CMAKE_CURRENT_LIST_DIR}
+    --cwd ${CMAKE_CURRENT_LIST_DIR} #
+    --include_directories "hoeut;oetuh"
   DEPENDS ${SHELL_SOURCES} ${cppygen_config_file}
   COMMENT
     "Generating CPPyGen Code To ${cppygen_generated_hpp} and ${cppygen_generated_cpp}"

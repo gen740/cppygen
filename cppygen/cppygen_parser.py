@@ -141,7 +141,7 @@ class Parser:
                 if diag.severity in [diag.Fatal, diag.Error]:
                     has_error = True
                     logger.error(
-                        f"{diag.location.file}:{diag.location.line}:{diag.location.column}: warining: {diag.spelling} [{diag.option}]"
+                        f"{diag.location.file}:{diag.location.line}:{diag.location.column}: error: {diag.spelling} [{diag.option}]"
                     )
                 if diag.severity == diag.Warning:
                     logger.warn(
