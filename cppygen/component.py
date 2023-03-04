@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, cast
 
 
 class Function(object):
@@ -76,6 +76,10 @@ class Function(object):
             f'namespace {"::".join(self._namespace)} '
             f'{{ {self._return_type} {self._name}({", ".join(args)}); }}'
         )
+
+    def signature(self) -> str:
+        args = [f"{i[1]} {i[0]}" for i in self._arguments]
+        return f'{"::".join(self._namespace)}::{self._name}({", ".join(args)}) -> {self._return_type}'
 
     def __eq__(self, obj):
         if isinstance(obj, Function):
@@ -175,6 +179,9 @@ class StructOrClass:
             + ";"
         )
 
+    def signature(self) -> str:
+        return f"{self._full_name}"
+
 
 class Submodule:
     """
@@ -218,6 +225,7 @@ class Submodule:
 
     def __eq__(self, obj):
         if isinstance(obj, Submodule):
-            return self._name == obj._name
+            return self.cpp_name == obj.cpp_name
         else:
             return False
+

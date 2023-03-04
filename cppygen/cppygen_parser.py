@@ -1,6 +1,7 @@
 import copy
 import os
 import re
+import sys
 from typing import List
 
 from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
@@ -83,6 +84,7 @@ class Parser:
                     j: Cursor
                     if j.kind == CursorKind.PARM_DECL:  # type: ignore
                         func.add_argument_type((j.spelling, j.type.spelling))
+                print("\t| Function  | " + func.signature())
                 self._funcitons.append(func)
 
     def _extract_struct_and_class(
@@ -121,6 +123,7 @@ class Parser:
                             j.brief_comment or "",
                             j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
                         )
+                print("\t| Class     | " + struct_or_class.signature())
                 self._structs_and_classes.append(struct_or_class)
 
     def add_hpp_includes(self, hpp: str):
@@ -143,10 +146,6 @@ class Parser:
                     logger.error(
                         f"{diag.location.file}:{diag.location.line}:{diag.location.column}: error: {diag.spelling} [{diag.option}]"
                     )
-                if diag.severity == diag.Warning:
-                    logger.warn(
-                        f"{diag.location.file}:{diag.location.line}:{diag.location.column}: warining: {diag.spelling} [{diag.option}]"
-                    )
             if has_error:
                 exit(1)
         root: Cursor = tu.cursor
@@ -161,13 +160,14 @@ class Parser:
                     self._extract_struct_and_class(x, namespace, module_name)
                 for i in list(x.get_children()):
                     i: Cursor
-                    namespace_in = copy.copy(namespace)
+                    namespace_in = copy.deepcopy(namespace)
                     if i.kind == CursorKind.NAMESPACE:  # type: ignore
                         submod = Submodule()
                         submod.set_name(i.spelling)
                         submod.set_description(i.brief_comment or "")
-                        submod.set_parent(copy.copy(namespace_in))
+                        submod.set_parent(copy.deepcopy(namespace_in))
                         if not submod in self._submodules:
+                            print(f"\t| Submodule | {submod.cpp_name}")
                             self._submodules.append(submod)
                         namespace_in.append(i.spelling)
                         visit(i, namespace_in, submod.cpp_name)

@@ -13,6 +13,7 @@ def create_default_formatter() -> colorlog.ColoredFormatter:
     return colorlog.ColoredFormatter(
         "%(log_color)s%(message)s",
         no_color=False if _color_supported() else True,
+        stream=sys.stdout
     )
 
 
@@ -29,7 +30,7 @@ def _color_supported() -> bool:
 
 
 def get_logger(name: str) -> Logger:
-    handler = colorlog.StreamHandler()
+    handler = colorlog.StreamHandler(sys.stdout)
     handler.setFormatter(create_default_formatter())
     logger = colorlog.getLogger(name)
     logger.addHandler(handler)
