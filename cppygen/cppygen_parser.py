@@ -119,7 +119,7 @@ class Parser:
                             if k.kind == CursorKind.PARM_DECL:  # type: ignore
                                 args.append((k.spelling, k.type.spelling))
                         (pyname, description) = _extract_comment_string(
-                            i.raw_comment or ""
+                            j.raw_comment or ""
                         )
                         struct_or_class.add_member_func(
                             j.spelling,
