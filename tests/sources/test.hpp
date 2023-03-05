@@ -5,6 +5,11 @@ namespace cppygen {
 struct Hoge {
 public:
   Hoge() {}
+
+  /* *
+   *
+   * */
+  void foo() {}
   int a = 3;
 
 private:

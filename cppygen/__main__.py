@@ -31,6 +31,8 @@ def run():
         "--flags", required=False, type=str, help="flags for cmake project"
     )
 
+    parser.add_argument("--verbose", action="store_true", help="verbose output")
+
     args = parser.parse_args()
 
     configs = toml.load(args.config_file)
@@ -58,6 +60,7 @@ def run():
     cppygen = Parser(
         namespace=configs.get("search_namespace"),
         library_file=configs.get("libclang_path"),
+        verbose=args.verbose,
     )
 
     flags = configs.get("flags") or []

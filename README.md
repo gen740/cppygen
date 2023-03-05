@@ -17,7 +17,7 @@ pip install cppygen
 After installing cppygen, you can use `cppygen` command.
 
 ```
-cppygen --config_file /path/to/cppygenconfig.toml --cwd /path/to/cwd
+cppygen --config_file /path/to/cppygenconfig.toml --cwd /path/to/cwd --verbose
 ```
 
 This command will load config file, and parse C++ code and generate
@@ -47,7 +47,8 @@ add_custom_command(
   COMMAND
     ${_CPPYGEN_GENERATOR} ARGS #
     --config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig.toml #
-    --cwd ${CMAKE_CURRENT_LIST_DIR}
+    --cwd ${CMAKE_CURRENT_LIST_DIR} #
+    --verbose
   DEPENDS ${SHELL_SOURCES}
   COMMENT
     "Generating CPPyGen Code To ${cppygen_generated_hpp} and ${cppygen_generated_cpp}"

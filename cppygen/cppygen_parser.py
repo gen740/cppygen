@@ -1,7 +1,6 @@
 import copy
 import os
 import re
-import sys
 from typing import List
 
 from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
@@ -24,12 +23,14 @@ class Parser:
         *,
         library_path: str | None = None,
         library_file: str | None = None,
+        verbose: bool = False,
     ):
         self._funcitons: List[Function] = []
         self._submodules: List[Submodule] = []
         self._structs_and_classes: List[StructOrClass] = []
         self._hpp_includes: List[str] = []
         self._namespace = namespace or "cppygen"
+        self.verbose = verbose
 
         if library_file != None and library_path != None:
             raise ValueError(f"Both library_path and library_file cannot be set.")
@@ -50,14 +51,13 @@ class Parser:
             flags = []
         if (cppygen_flags := os.environ.get("CPPYGEN_COMPILE_FLAGS", None)) is not None:
             flags.extend(cppygen_flags.split(" "))
-            print(cppygen_flags.split(" "))
         args = list(flags)
         name = filename
         return TranslationUnit.from_source(
             name,
             args,
             unsaved_files=[(name, source)],
-            options=TranslationUnit.PARSE_DETAILED_PROCESSING_RECORD,
+            options=TranslationUnit.PARSE_NONE,
         )
 
     def _extract_functions(self, cu: Cursor, namespace: List[str], module_name: str):
@@ -74,17 +74,19 @@ class Parser:
 
                 # extract comment string
                 raw_comment = i.raw_comment or ""
-                pyname = re.search(r"pyname: *(.*)", raw_comment)
-                description = re.search(r"description: *(.*)", raw_comment)
+
+                pyname, description = _extract_comment_string(raw_comment)
+
                 if pyname is not None:
-                    func.pyname = pyname[1]
-                func.set_description(description and description[1] or "")
+                    func.pyname = pyname
+                func.set_description(description and description or "")
 
                 for j in list(i.get_children()):
                     j: Cursor
                     if j.kind == CursorKind.PARM_DECL:  # type: ignore
                         func.add_argument_type((j.spelling, j.type.spelling))
-                print("\t| Function  | " + func.signature())
+                if self.verbose:
+                    print("\t| Function  | " + func.signature())
                 self._funcitons.append(func)
 
     def _extract_struct_and_class(
@@ -116,14 +118,19 @@ class Parser:
                         for k in list(j.get_children()):
                             if k.kind == CursorKind.PARM_DECL:  # type: ignore
                                 args.append((k.spelling, k.type.spelling))
+                        (pyname, description) = _extract_comment_string(
+                            i.raw_comment or ""
+                        )
                         struct_or_class.add_member_func(
                             j.spelling,
+                            pyname,
                             j.result_type.spelling,
                             args,
-                            j.brief_comment or "",
+                            description or "",
                             j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
                         )
-                print("\t| Class     | " + struct_or_class.signature())
+                if self.verbose:
+                    print("\t| Class     | " + struct_or_class.signature())
                 self._structs_and_classes.append(struct_or_class)
 
     def add_hpp_includes(self, hpp: str):
@@ -167,7 +174,8 @@ class Parser:
                         submod.set_description(i.brief_comment or "")
                         submod.set_parent(copy.deepcopy(namespace_in))
                         if not submod in self._submodules:
-                            print(f"\t| Submodule | {submod.cpp_name}")
+                            if self.verbose:
+                                print(f"\t| Submodule | {submod.cpp_name}")
                             self._submodules.append(submod)
                         namespace_in.append(i.spelling)
                         visit(i, namespace_in, submod.cpp_name)
@@ -270,3 +278,10 @@ class Parser:
             f"extern void CPPyGenExport(pybind11::module_ {self._namespace});\n\n"
             "}"
         )
+
+
+def _extract_comment_string(raw_comment: str) -> tuple[str | None, str | None]:
+    return (
+        (re.search(r"pyname: *(.*)", raw_comment) or [None, None])[1],
+        (re.search(r"description: *(.*)", raw_comment) or [None, None])[1],
+    )

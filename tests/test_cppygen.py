@@ -1,5 +1,3 @@
-import platform
-
 import pytest
 
 from cppygen.cppygen_parser import Parser

@@ -38,6 +38,7 @@ def test_function():
         == """Shell_foo.def("__str__", &Shell::foo::test_function1, "this is test function1", pybind11::arg("arg1"), pybind11::arg("arg2"));"""
     )
 
+
 def test_submodule():
     submodule = Submodule()
 
@@ -92,12 +93,14 @@ def test_struct_or_class():
 
     soc.add_member_func(
         "mfun1",
+        "mfun1",
         "int",
         [("arg1", "int"), ("arg2", "std::string")],
         "this is the member1",
     )
 
     soc.add_member_func(
+        "mfun2",
         "mfun2",
         "char",
         [("arg1", "std::string"), ("arg2", "std::vector<int>")],
@@ -123,6 +126,7 @@ def test_struct_or_class():
     expect_member_functions = [
         {
             "name": "mfun1",
+            "pyname": "mfun1",
             "return_type": "int",
             "description": "this is the member1",
             "private": False,
@@ -130,6 +134,7 @@ def test_struct_or_class():
         },
         {
             "name": "mfun2",
+            "pyname": "mfun2",
             "return_type": "char",
             "description": "this is the member2",
             "private": False,

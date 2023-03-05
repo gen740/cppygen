@@ -108,7 +108,11 @@ class StructOrClass:
         self._full_name = f"{'::'.join(namespace)}::{name}"
 
     def add_member(
-        self, name: str, type: str, description: str = "", private: bool = False
+        self,
+        name: str,
+        type: str,
+        description: str = "",
+        private: bool = False,
     ):
         self._members.append(
             {
@@ -122,14 +126,17 @@ class StructOrClass:
     def add_member_func(
         self,
         name: str,
+        pyname: str | None,
         type: str,
         args: List[Tuple[str, str]],  # list[(name, type)]
         description: str = "",
         private: bool = False,
     ):
+        pyname = pyname or name
         self._member_funcs.append(
             {
                 "name": name,
+                "pyname": pyname,
                 "return_type": type,
                 "description": description,
                 "private": private,
@@ -170,7 +177,7 @@ class StructOrClass:
             + "\n".join(
                 [""]
                 + [
-                    f'\t\t.def("{i["name"]}",'
+                    f'\t\t.def("{i["pyname"]}",'
                     f' &{self._full_name}::{i["name"]}, "{i["description"]}")'
                     for i in self._member_funcs
                     if not i["private"]
@@ -228,4 +235,3 @@ class Submodule:
             return self.cpp_name == obj.cpp_name
         else:
             return False
-

@@ -35,7 +35,8 @@ void CPPyGenExport(pybind11::module_ cppygen)
 	/* Structs and Classes Export Start */
 	pybind11::class_<::cppygen::Hoge>(cppygen, "Hoge")
 		.def(pybind11::init())
-		.def_readwrite("a", &cppygen::Hoge::a, "");
+		.def_readwrite("a", &cppygen::Hoge::a, "")
+		.def("foo", &cppygen::Hoge::foo, "");
 	/* Structs and Classes Export End */
 
 
