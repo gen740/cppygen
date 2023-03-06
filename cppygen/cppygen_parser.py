@@ -20,6 +20,7 @@ class Parser:
     def __init__(
         self,
         namespace: str | None = None,
+        mode: str = "source",
         *,
         library_path: str | None = None,
         library_file: str | None = None,
@@ -159,11 +160,11 @@ class Parser:
         for i in list(root.get_children()):
             i: Cursor
 
-            # 再起的に関数を抽出する。
+            # Recursive Function
             def visit(x: Cursor, namespace: List[str], module_name: str):
                 if lang == "cpp":
                     self._extract_functions(x, namespace, module_name)
-                elif lang == "hpp":  # ヘッダーでのみクラスを抽出する。
+                elif lang == "hpp":
                     self._extract_struct_and_class(x, namespace, module_name)
                 for i in list(x.get_children()):
                     i: Cursor
@@ -180,7 +181,7 @@ class Parser:
                         namespace_in.append(i.spelling)
                         visit(i, namespace_in, submod.cpp_name)
 
-            # トップレベルの namespace を探す
+            # Search top-level namespace
             if i.kind == CursorKind.NAMESPACE and i.spelling == self._namespace:  # type: ignore
                 visit(i, [self._namespace], self._namespace)
 

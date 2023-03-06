@@ -17,7 +17,7 @@ pip install cppygen
 After installing cppygen, you can use `cppygen` command.
 
 ```
-cppygen --config_file /path/to/cppygenconfig.toml --cwd /path/to/cwd --verbose
+cppygen --config_file /path/to/cppygenconfig.toml --cwd /path/to/cwd [--verbose] [--include_directories INCLUDE_DIRECTORIES] [--flags FLAGS]
 ```
 
 This command will load config file, and parse C++ code and generate
