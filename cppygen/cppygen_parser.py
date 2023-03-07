@@ -34,15 +34,18 @@ class Parser:
         if library_file != None and library_path != None:
             raise ValueError(f"Both library_path and library_file cannot be set.")
         if not library_path is None:
-            Config.set_library_path(library_path)
+            if not Config.library_file:
+                Config.set_library_path(library_path)
             return
         if not library_file is None:
-            Config.set_library_file(library_file)
+            if not Config.library_file:
+                Config.set_library_file(library_file)
             return
         if (library_file is None and library_path is None) and (
             cppygen_libclang_path := os.environ.get("CPPYGEN_LIBCLANG_PATH", None)
         ) is not None:
-            Config.set_library_file(cppygen_libclang_path)
+            if not Config.library_file:
+                Config.set_library_file(cppygen_libclang_path)
             return
 
     def _get_tu(self, source: str, filename: str, flags=[]) -> TranslationUnit:
