@@ -7,10 +7,9 @@
 
 
 /* Function Declarations Start */
-namespace cppygen { void f(); }
-namespace cppygen { int g(int, int); }
-namespace cppygen { void h(std::string); }
-namespace cppygen { void i(std::vector<double>); }
+namespace cppygen { void foo(); }
+namespace cppygen { void foo(int); }
+namespace cppygen { void bar(); }
 /* Function Declarations End */
 
 
@@ -26,10 +25,9 @@ void CPPyGenExport(pybind11::module_ cppygen)
 
 
 	/* Function Export Start */
-	cppygen.def("f", &cppygen::f, "foo");
-	cppygen.def("pyg", &cppygen::g, "", pybind11::arg("a"), pybind11::arg("b"));
-	cppygen.def("h", &cppygen::h, "", pybind11::arg(""));
-	cppygen.def("i", &cppygen::i, "", pybind11::arg(""));
+	cppygen.def("foo", static_cast<void (*)()>(&cppygen::foo), "");
+	cppygen.def("foo", static_cast<void (*)(int)>(&cppygen::foo), "", pybind11::arg(""));
+	cppygen.def("bar", &cppygen::bar, "");
 	/* Function Export End */
 
 	/* Structs and Classes Export Start */

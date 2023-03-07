@@ -1,7 +1,7 @@
 import copy
 import os
 import re
-from typing import List
+from typing import List, Literal
 
 from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
 
@@ -19,7 +19,6 @@ class Parser:
     def __init__(
         self,
         namespace: str | None = None,
-        mode: str = "source",
         *,
         library_path: str | None = None,
         library_file: str | None = None,
@@ -60,10 +59,16 @@ class Parser:
             options=TranslationUnit.PARSE_NONE,
         )
 
-    def _extract_functions(self, cu: Cursor, namespace: List[str], module_name: str):
+    def _extract_functions(
+        self,
+        cu: Cursor,
+        namespace: List[str],
+        module_name: str,
+        mode: Literal["source"] | Literal["header"] = "source",
+    ):
         for i in list(cu.get_children()):
             i: Cursor
-            if i.kind == CursorKind.FUNCTION_DECL and i.is_definition():  # type: ignore
+            if i.kind == CursorKind.FUNCTION_DECL and (i.is_definition() or mode == "header"):  # type: ignore
                 func = Function()
                 func.set_return_type(i.result_type.spelling)
                 func.set_name(i.spelling, namespace)
@@ -84,7 +89,8 @@ class Parser:
                         func.add_argument_type((j.spelling, j.type.spelling))
                 if self.verbose:
                     print("\t| Function  | " + func.signature())
-                self._functions.append(func)
+                if not func in self._functions:
+                    self._functions.append(func)
 
     def _extract_struct_and_class(
         self, cu: Cursor, namespace: List[str], module_name: str
@@ -137,6 +143,7 @@ class Parser:
         lang: str = "cpp",
         flags=[],
         with_diagnostic=False,
+        mode: Literal["source"] | Literal["header"] = "source",
     ):
         tu: TranslationUnit = self._get_tu(source, filename, flags)
         if with_diagnostic:
@@ -155,10 +162,16 @@ class Parser:
 
             # Recursive Function
             def visit(x: Cursor, namespace: List[str], module_name: str):
-                if lang == "cpp":
-                    self._extract_functions(x, namespace, module_name)
-                elif lang == "hpp":
+                if mode == "source":
+                    if lang == "cpp":
+                        self._extract_functions(x, namespace, module_name)
+                    elif lang == "hpp":
+                        self._extract_struct_and_class(x, namespace, module_name)
+                elif mode == "header":
+                    self._extract_functions(x, namespace, module_name, mode="header")
                     self._extract_struct_and_class(x, namespace, module_name)
+                else:
+                    raise KeyError('Mode should be "source" or "header"')
                 for i in list(x.get_children()):
                     i: Cursor
                     namespace_in = copy.deepcopy(namespace)
@@ -178,10 +191,16 @@ class Parser:
             if i.kind == CursorKind.NAMESPACE and i.spelling == self._namespace:  # type: ignore
                 visit(i, [self._namespace], self._namespace)
 
-    def parse_from_file(self, filename: str, lang: str = "cpp", flags=[]):
+    def parse_from_file(
+        self,
+        filename: str,
+        lang: str = "cpp",
+        flags=[],
+        mode: Literal["header"] | Literal["source"] = "source",
+    ):
         with open(filename, "r") as f:
             data = f.read()
-        self.parse(data, filename, lang, flags, with_diagnostic=True)
+        self.parse(data, filename, lang, flags, with_diagnostic=True, mode=mode)
 
     def to_decl_string(self):
         return (

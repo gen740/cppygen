@@ -59,7 +59,12 @@ add_custom_command(
 `cppygen` command does not work without configuration.
 Use toml format configuration file.
 
-**sources** [array of path, **required**]
+**mode** ["header" or "source"]
+cppygen parse strategy. "source" would parse source files for functions,
+"header" would parse headers for functions. This option would only affect
+function export. "header" would be faster.
+
+**sources** [array of path, **required**(if soruce mode is on)]
 Paths with `cppygen` will parse. `cppygen` can extract functions from
 sources.
 
@@ -74,10 +79,6 @@ Output directory of generated code.
 Default is "cppygen", this option will define the namespace witch
 will be parsed by `cppygen`. Outside of this namespace would be ignored.
 
-**include_headers** [array of filename, optional]
-`cppygen` does not resolve include paths, thus if you want to export C++
-classes you should specify include filenames.
-
 **include_directories** [array of dir, optional]
 These directories will be passed as absolute paths to parser include flags.
 Same as `flags =["-I/abs_path/to/dir"]`
@@ -87,6 +88,11 @@ Parser compile options.
 
 **libclang_path** [path, optional]
 Path to `libclang` shared library.
+
+**include_headers** [array of filename, optional]
+**deprecated** `cppygen` does not resolve include paths, thus if you want to export C++
+classes you should specify include filenames.
+
 
 ## Examples
 See the `examples` directry for sample projects.

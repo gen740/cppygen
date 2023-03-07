@@ -15,22 +15,18 @@ def run():
     parser.add_argument(
         "--config_file", required=True, type=str, help="Path to config file"
     )
-
     parser.add_argument(
         "--cwd", required=True, type=str, help="Current Working Directory"
     )
-
     parser.add_argument(
         "--include_directories",
         required=False,
         type=str,
         help="include_directories for cmake project",
     )
-
     parser.add_argument(
         "--flags", required=False, type=str, help="flags for cmake project"
     )
-
     parser.add_argument("--verbose", action="store_true", help="verbose output")
 
     args = parser.parse_args()
@@ -39,11 +35,22 @@ def run():
     cwd = pathlib.Path(args.cwd)
 
     sources = []
-    if (config_sources := configs.get("sources")) is None:
-        logger.error("Please Specify the sources field in config file")
+
+    mode = configs.get("mode", "source")
+
+    if mode == "source":
+        if (config_sources := configs.get("sources")) is None:
+            logger.error("Please Specify the sources field in config file")
+            exit(1)
+        for i in config_sources:
+            sources.extend([j for j in cwd.glob(i)])
+    elif mode == "source":
+        if configs.get("sources"):
+            logger.error("Do not set sources")
+            exit(1)
+    else:
+        logger.error('mode shold be "source" or "header"')
         exit(1)
-    for i in config_sources:
-        sources.extend([j for j in cwd.glob(i)])
 
     headers = []
     if (config_headers := configs.get("headers")) is None:
@@ -71,13 +78,26 @@ def run():
     flags.extend([i for i in (args.flags or "").split(";")])
     flags.extend([f"-I{i}" for i in (args.include_directories or "").split(";")])
 
-    for i in sources:
-        cppygen.parse_from_file(i, lang="cpp", flags=configs.get("flags") or [])
+    if mode == "source":
+        for i in sources:
+            cppygen.parse_from_file(i, lang="cpp", flags=configs.get("flags") or [])
+
+        for i in headers:
+            cppygen.parse_from_file(i, lang="hpp", flags=configs.get("flags") or [])
+    else:
+        cppygen.parse(
+            source="\n".join([f"#include<{i}>" for i in headers]),
+            filename="tmp.hpp",
+            lang="hpp",
+            mode="header",
+        )
+
+    if configs.get("include_headers"):
+        logger.warning(
+            '"include_headers" was duprecated. "include_headers" was no more needed'
+        )
 
     for i in headers:
-        cppygen.parse_from_file(i, lang="hpp", flags=configs.get("flags") or [])
-
-    for i in configs.get("include_headers") or []:
         cppygen.add_hpp_includes(i)
 
     with open(str(output_dir) + "/cppygen_generated.hpp", "w") as f:

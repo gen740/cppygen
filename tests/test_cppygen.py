@@ -8,7 +8,7 @@ def test_cppygen_valueerror():
         Parser(library_file="/usr/lib", library_path="/usr/lib")
 
 
-def test_cppygen():
+def test_cppygen_source_mode():
     p = Parser()
 
     p.parse_from_file(
@@ -24,4 +24,16 @@ def test_cppygen():
         assert f.read() == f"{p.hpp_generate()}\n"
 
     with open("./tests/expect_out/impl", "r") as f:
+        assert f.read() == f"{p.cpp_generate()}\n"
+
+
+def test_cppygen_header_mode():
+    p = Parser()
+
+    p.parse_from_file("./tests/sources/test.hpp", lang="hpp", mode="header")
+
+    with open("./tests/expect_out/header", "r") as f:
+        assert f.read() == f"{p.hpp_generate()}\n"
+
+    with open("./tests/expect_out/impl2", "r") as f:
         assert f.read() == f"{p.cpp_generate()}\n"
