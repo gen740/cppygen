@@ -13,8 +13,7 @@ logger = get_logger("parser")
 
 class Parser:
     """
-    CPPyGen はヘッダーを解析し、pybind11 用の関数を自動で作り出すコードジェネレー
-    タです。
+    Analyze C++ source files and Generate pybind11 C++ code.
     """
 
     def __init__(
@@ -25,7 +24,7 @@ class Parser:
         library_file: str | None = None,
         verbose: bool = False,
     ):
-        self._funcitons: List[Function] = []
+        self._functions: List[Function] = []
         self._submodules: List[Submodule] = []
         self._structs_and_classes: List[StructOrClass] = []
         self._hpp_includes: List[str] = []
@@ -61,9 +60,6 @@ class Parser:
         )
 
     def _extract_functions(self, cu: Cursor, namespace: List[str], module_name: str):
-        """
-        cu 以下にある関数を抽出する
-        """
         for i in list(cu.get_children()):
             i: Cursor
             if i.kind == CursorKind.FUNCTION_DECL and i.is_definition():  # type: ignore
@@ -87,14 +83,11 @@ class Parser:
                         func.add_argument_type((j.spelling, j.type.spelling))
                 if self.verbose:
                     print("\t| Function  | " + func.signature())
-                self._funcitons.append(func)
+                self._functions.append(func)
 
     def _extract_struct_and_class(
         self, cu: Cursor, namespace: List[str], module_name: str
     ):
-        """
-        cu 以下にある構造体を抽出する
-        """
         for i in list(cu.get_children()):
             i: Cursor
             if i.kind == CursorKind.STRUCT_DECL or i.kind == CursorKind.CLASS_DECL:  # type: ignore
@@ -163,7 +156,7 @@ class Parser:
             def visit(x: Cursor, namespace: List[str], module_name: str):
                 if lang == "cpp":
                     self._extract_functions(x, namespace, module_name)
-                elif lang == "hpp":  # ヘッダーでのみクラスを抽出する。
+                elif lang == "hpp":
                     self._extract_struct_and_class(x, namespace, module_name)
                 for i in list(x.get_children()):
                     i: Cursor
@@ -192,7 +185,7 @@ class Parser:
     def to_decl_string(self):
         return (
             "/* Function Declarations Start */\n"
-            + "\n".join([i.to_decl_string() for i in self._funcitons] + [""])
+            + "\n".join([i.to_decl_string() for i in self._functions] + [""])
             + "/* Function Declarations End */\n\n"
         )
 
@@ -206,9 +199,20 @@ class Parser:
     def to_export_string(self):
         return (
             "\t/* Function Export Start */\n"
-            + "\n".join(["\t" + i.to_pybind_string() for i in self._funcitons] + [""])
+            + "\n".join(
+                [
+                    # overloaded function
+                    "\t" + i.to_pybind_string(overloaded=True)
+                    # Check if more than two function has same signature.
+                    if [j._full_name for j in self._functions].count(i._full_name) > 1
+                    # Non overloaded function
+                    else "\t" + i.to_pybind_string()
+                    for i in self._functions
+                ]
+                + [""]
+            )
             + "\t/* Function Export End */\n\n"
-            "\t/* Structs and Classes Export Start */\n"
+            + "\t/* Structs and Classes Export Start */\n"
             + "\n".join(
                 ["\t" + i.to_pybind_string() for i in self._structs_and_classes] + [""]
             )

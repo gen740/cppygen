@@ -5,6 +5,4 @@
 
 #include "cppygen_generated.hpp"
 
-void main_impl([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {}
-
 PYBIND11_MODULE(pyshell, m) { CPPyGen::CPPyGenExport(m); }

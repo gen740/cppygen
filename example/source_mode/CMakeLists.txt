@@ -20,18 +20,6 @@ set(cppygen_config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig.toml)
 find_program(_CPPYGEN_GENERATOR cppygen)
 message(${cppygen_config_file})
 
-add_custom_command(
-  OUTPUT ${cppygen_generated_hpp} ${cppygen_generated_cpp}
-  COMMAND
-    ${_CPPYGEN_GENERATOR} ARGS #
-    --config_file ${cppygen_config_file}#
-    --cwd ${CMAKE_CURRENT_LIST_DIR} #
-    --include_directories "hoeut;oetuh"
-  DEPENDS ${SHELL_SOURCES} ${cppygen_config_file}
-  COMMENT
-    "Generating CPPyGen Code To ${cppygen_generated_hpp} and ${cppygen_generated_cpp}"
-  VERBATIM)
-
 pybind11_add_module(pyshell MODULE ${MAIN_SOURCES} ${SHELL_SOURCES}
                     ${cppygen_generated_cpp})
 
@@ -54,9 +42,17 @@ set_target_properties(
              CXX_VISIBILITY_PRESET "hidden"
              VISIBILITY_INLINES_HIDDEN ON)
 
-# stub の生成も cmake を用いるといい find_program(_MYPY_STUBGEN stubgen)
-# add_custom_command( TARGET pyshell POST_BUILD COMMAND ${_MYPY_STUBGEN} ARGS -p
-# pyshell -o ${CMAKE_CURRENT_LIST_DIR}/python/stubs WORKING_DIRECTORY
-# ${CMAKE_CURRENT_BINARY_DIR} )
+add_custom_command(
+  OUTPUT ${cppygen_generated_hpp} ${cppygen_generated_cpp}
+  COMMAND
+    ${_CPPYGEN_GENERATOR} ARGS #
+    --config_file ${cppygen_config_file} #
+    --cwd ${CMAKE_CURRENT_LIST_DIR} #
+    --include_directories $<TARGET_PROPERTY:pyshell,INCLUDE_DIRECTORIES> #
+    --verbose
+  DEPENDS ${SHELL_SOURCES} ${cppygen_config_file}
+  COMMENT
+    "Generating CPPyGen Code To ${cppygen_generated_hpp} and ${cppygen_generated_cpp}"
+  VERBATIM)
 
 # vim:sw=2

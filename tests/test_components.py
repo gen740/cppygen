@@ -31,11 +31,26 @@ def test_function():
         == """Shell_foo.def("test_function1", &Shell::foo::test_function1, "this is test function1", pybind11::arg("arg1"), pybind11::arg("arg2"));"""
     )
 
+    assert fun.to_pybind_string(overloaded=True) == (
+        """Shell_foo.def("test_function1", static_cast<TestClass (*)(int, std::string)>"""
+        """(&Shell::foo::test_function1), "this is test function1", pybind11::arg("arg1"), pybind11::arg("arg2"));"""
+    )
+
     fun.pyname = "__str__"
 
     assert (
         fun.to_pybind_string()
         == """Shell_foo.def("__str__", &Shell::foo::test_function1, "this is test function1", pybind11::arg("arg1"), pybind11::arg("arg2"));"""
+    )
+
+    assert fun.to_pybind_string(overloaded=True) == (
+        """Shell_foo.def("__str__", static_cast<TestClass (*)(int, std::string)>"""
+        """(&Shell::foo::test_function1), "this is test function1", pybind11::arg("arg1"), pybind11::arg("arg2"));"""
+    )
+
+    assert (
+        fun.signature()
+        == """Shell::foo::test_function1(int, std::string) -> TestClass"""
     )
 
 
@@ -107,18 +122,24 @@ def test_struct_or_class():
         "this is the member2",
     )
 
+    soc.add_member_func(
+        "mfun2",
+        "mfun2",
+        "char",
+        [("arg1", "bool")],
+        "this is the member2(overloaded)",
+    )
+
     expect_members = [
         {
             "name": "member1",
             "type": "int",
             "description": "this is the member1",
-            "private": False,
         },
         {
             "name": "member2",
             "type": "std::array<int, 5>",
             "description": "this is the member2",
-            "private": False,
         },
     ]
     assert soc._members == expect_members
@@ -129,7 +150,6 @@ def test_struct_or_class():
             "pyname": "mfun1",
             "return_type": "int",
             "description": "this is the member1",
-            "private": False,
             "args": [("arg1", "int"), ("arg2", "std::string")],
         },
         {
@@ -137,8 +157,14 @@ def test_struct_or_class():
             "pyname": "mfun2",
             "return_type": "char",
             "description": "this is the member2",
-            "private": False,
             "args": [("arg1", "std::string"), ("arg2", "std::vector<int>")],
+        },
+        {
+            "name": "mfun2",
+            "pyname": "mfun2",
+            "return_type": "char",
+            "description": "this is the member2(overloaded)",
+            "args": [("arg1", "bool")],
         },
     ]
     assert soc._member_funcs == expect_member_functions
@@ -149,6 +175,7 @@ def test_struct_or_class():
         """\t\t.def_readwrite("member1", &mod1::mod2::class1::member1, "this is the member1")\n"""
         """\t\t.def_readwrite("member2", &mod1::mod2::class1::member2, "this is the member2")\n"""
         """\t\t.def("mfun1", &mod1::mod2::class1::mfun1, "this is the member1")\n"""
-        """\t\t.def("mfun2", &mod1::mod2::class1::mfun2, "this is the member2");"""
+        """\t\t.def("mfun2", static_cast<char (mod1::mod2::class1::*)(std::string, std::vector<int>)>(&mod1::mod2::class1::mfun2), "this is the member2")\n"""
+        """\t\t.def("mfun2", static_cast<char (mod1::mod2::class1::*)(bool)>(&mod1::mod2::class1::mfun2), "this is the member2(overloaded)");"""
     )
     assert soc.to_pybind_string() == expect_pybind_string

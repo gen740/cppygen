@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple, cast
+from typing import Dict, List, Tuple, TypedDict, cast
 
 
 class Function(object):
@@ -51,19 +51,22 @@ class Function(object):
     def set_module(self, module: str):
         self._module = module
 
-    def to_pybind_string(self):
+    def to_pybind_string(self, overloaded=False):
         if self._name == None or self._full_name == None or self._module == None:
             print("Parse Error Skipping ...")
             return ""
         args = [f', pybind11::arg("{i[0]}")' for i in self._arguments]
-        if self._pyname is not None:
+        self._pyname = self._pyname or self._name
+        if overloaded:
             return (
-                f'{self._module}.def("{self._pyname}", &{self._full_name}, "{self._description}"'
+                f'{self._module}.def("{self._pyname}", '
+                f'static_cast<{self._return_type} (*)({", ".join([i[1] for i in self._arguments])})>'
+                f'(&{self._full_name}), "{self._description}"'
                 f'{"".join(args)});'
             )
         else:
             return (
-                f'{self._module}.def("{self._name}", &{self._full_name}, "{self._description}"'
+                f'{self._module}.def("{self._pyname}", &{self._full_name}, "{self._description}"'
                 f'{"".join(args)});'
             )
 
@@ -77,28 +80,39 @@ class Function(object):
             f'{{ {self._return_type} {self._name}({", ".join(args)}); }}'
         )
 
-    def signature(self) -> str:
-        args = [f"{i[1]} {i[0]}" for i in self._arguments]
-        return f'{"::".join(self._namespace)}::{self._name}({", ".join(args)}) -> {self._return_type}'
+    def signature(self, with_return_type=True) -> str:
+        args = [f"{i[1]}" for i in self._arguments]
+        if with_return_type:
+            return f'{"::".join(self._namespace)}::{self._name}({", ".join(args)}) -> {self._return_type}'
+        else:
+            return f'{"::".join(self._namespace)}::{self._name}({", ".join(args)})'
 
     def __eq__(self, obj):
         if isinstance(obj, Function):
-            return self._full_name == obj._full_name
+            return self.signature(with_return_type=False) == obj.signature(
+                with_return_type=False
+            )
         else:
             return False
 
 
 class StructOrClass:
     """
-    Struct や Class を表すクラス
-    必要な情報を詰め込み、 to_pybind_string で生成する。
+    Represent Struct or Class.
     """
+
+    class MemberFunctionSignature(TypedDict):
+        name: str
+        pyname: str
+        return_type: str
+        description: str
+        args: List[Tuple[str, str]]
 
     def __init__(self):
         self._name: str | None = None
         self._namespace: List[str] = []
-        self._members: list[Dict[str, bool | str]] = []
-        self._member_funcs: list[Dict[str, bool | str | List[Tuple[str, str]]]] = []
+        self._members: list[Dict[str, str]] = []
+        self._member_funcs: list[StructOrClass.MemberFunctionSignature] = []
         self._module: str | None = None
         self._description = ""
 
@@ -114,14 +128,14 @@ class StructOrClass:
         description: str = "",
         private: bool = False,
     ):
-        self._members.append(
-            {
-                "name": name,
-                "type": type,
-                "description": description,
-                "private": private,
-            }
-        )
+        if not private:
+            self._members.append(
+                {
+                    "name": name,
+                    "type": type,
+                    "description": description,
+                }
+            )
 
     def add_member_func(
         self,
@@ -133,16 +147,16 @@ class StructOrClass:
         private: bool = False,
     ):
         pyname = pyname or name
-        self._member_funcs.append(
-            {
-                "name": name,
-                "pyname": pyname,
-                "return_type": type,
-                "description": description,
-                "private": private,
-                "args": args,
-            }
-        )
+        if not private:
+            self._member_funcs.append(
+                {
+                    "name": name,
+                    "pyname": pyname,
+                    "return_type": type,
+                    "description": description,
+                    "args": args,
+                }
+            )
 
     def set_module(self, module: str):
         self._module = module
@@ -163,24 +177,28 @@ class StructOrClass:
         return (
             f'pybind11::class_<::{self._full_name}>({self._module}, "{self._name}")\n'
             "\t\t.def(pybind11::init())"
-            ## Member 変数の宣言
+            # Declare members.
             + "\n".join(
                 [""]
                 + [
                     f'\t\t.def_readwrite("{i["name"]}",'
                     f' &{self._full_name}::{i["name"]}, "{i["description"]}")'
                     for i in self._members
-                    if not i["private"]
                 ]
             )
-            ## Member 関数の宣言
+            # Declare member functions.
             + "\n".join(
                 [""]
                 + [
-                    f'\t\t.def("{i["pyname"]}",'
+                    # overloaded funciton
+                    f'\t\t.def("{i["pyname"]}", '
+                    f'static_cast<{i["return_type"]} ({self._full_name}::*)({", ".join([j[1] for j in i["args"]])})>'
+                    f'(&{self._full_name}::{i["name"]}), "{i["description"]}")'
+                    if [j["name"] for j in self._member_funcs].count(i["name"]) > 1
+                    # Non overloaded funciton
+                    else f'\t\t.def("{i["pyname"]}",'
                     f' &{self._full_name}::{i["name"]}, "{i["description"]}")'
                     for i in self._member_funcs
-                    if not i["private"]
                 ]
             )
             + ";"
@@ -192,8 +210,7 @@ class StructOrClass:
 
 class Submodule:
     """
-    Submodule を表すクラス
-    必要な情報を詰め込み、 to_pybind_string で生成する。
+    Represent Submodule.
     """
 
     def __init__(self):
