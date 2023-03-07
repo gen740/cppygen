@@ -6,6 +6,8 @@
 #include <pybind11/stl.h>
 
 /* Custom Header Include Start */
+#include "foo.hpp"
+#include "bar.hpp"
 /* Custom Header Include End */
 
 namespace CPPyGen {

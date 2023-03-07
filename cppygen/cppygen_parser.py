@@ -299,7 +299,7 @@ class Parser:
             "#include <pybind11/pytypes.h>\n"
             "#include <pybind11/stl.h>\n\n"
             "/* Custom Header Include Start */\n"
-            + "\n".join([f'#include "{i}"' for i in self._hpp_includes])
+            + "".join([f'#include "{i}"\n' for i in self._hpp_includes])
             + "/* Custom Header Include End */\n\n"
             "namespace CPPyGen {\n\n"
             f"extern void CPPyGenExport(pybind11::module_ {self._namespace});\n\n"

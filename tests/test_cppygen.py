@@ -19,6 +19,8 @@ def test_cppygen_source_mode():
         "./tests/sources/test.hpp",
         lang="hpp",
     )
+    p.add_hpp_includes("foo.hpp")
+    p.add_hpp_includes("bar.hpp")
 
     with open("./tests/expect_out/header", "r") as f:
         assert f.read() == f"{p.hpp_generate()}\n"
@@ -31,6 +33,8 @@ def test_cppygen_header_mode():
     p = Parser()
 
     p.parse_from_file("./tests/sources/test.hpp", lang="hpp", mode="header")
+    p.add_hpp_includes("foo.hpp")
+    p.add_hpp_includes("bar.hpp")
 
     with open("./tests/expect_out/header", "r") as f:
         assert f.read() == f"{p.hpp_generate()}\n"
