@@ -29,7 +29,8 @@ class Parser:
         self._structs_and_classes: List[StructOrClass] = []
         self._hpp_includes: List[str] = []
         self._namespace = namespace or "cppygen"
-        self.verbose = verbose
+        self._verbose = verbose
+        self._call_guards: List[str] = []
 
         if library_file != None and library_path != None:
             raise ValueError(f"Both library_path and library_file cannot be set.")
@@ -76,6 +77,8 @@ class Parser:
                 func.set_return_type(i.result_type.spelling)
                 func.set_name(i.spelling, namespace)
                 func.set_module(module_name)
+                for call_guard in self._call_guards:
+                    func.add_call_guard(call_guard)
 
                 # extract comment string
                 raw_comment = i.raw_comment or ""
@@ -90,7 +93,7 @@ class Parser:
                     j: Cursor
                     if j.kind == CursorKind.PARM_DECL:  # type: ignore
                         func.add_argument_type((j.spelling, j.type.spelling))
-                if self.verbose:
+                if self._verbose:
                     print("\t| Function  | " + func.signature())
                 if not func in self._functions:
                     self._functions.append(func)
@@ -125,19 +128,23 @@ class Parser:
                             j.raw_comment or ""
                         )
                         struct_or_class.add_member_func(
-                            j.spelling,
-                            pyname,
-                            j.result_type.spelling,
-                            args,
-                            description or "",
-                            j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
+                            name=j.spelling,
+                            pyname=pyname,
+                            return_type=j.result_type.spelling,
+                            args=args,
+                            description=description or "",
+                            call_guards=self._call_guards,
+                            private=j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
                         )
-                if self.verbose:
+                if self._verbose:
                     print("\t| Class     | " + struct_or_class.signature())
                 self._structs_and_classes.append(struct_or_class)
 
     def add_hpp_includes(self, hpp: str):
         self._hpp_includes.append(hpp)
+
+    def add_call_guard(self, call_guard: str):
+        self._call_guards.append(call_guard)
 
     def parse(
         self,
@@ -184,7 +191,7 @@ class Parser:
                         submod.set_description(i.brief_comment or "")
                         submod.set_parent(copy.deepcopy(namespace_in))
                         if not submod in self._submodules:
-                            if self.verbose:
+                            if self._verbose:
                                 print(f"\t| Submodule | {submod.cpp_name}")
                             self._submodules.append(submod)
                         namespace_in.append(i.spelling)

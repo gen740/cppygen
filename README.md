@@ -89,6 +89,10 @@ Parser compile options.
 **libclang_path** [path, optional]
 Path to `libclang` shared library.
 
+**call_guards** [array of string, optional]
+Add call_guard to exported function and member function, this option is
+useful when you want to add some call_guard to all C++ function.
+
 **include_headers** [array of filename, optional]
 **deprecated** `cppygen` does not resolve include paths, thus if you want to export C++
 classes you should specify include filenames.

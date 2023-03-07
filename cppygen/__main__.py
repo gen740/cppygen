@@ -70,9 +70,12 @@ def run():
         verbose=args.verbose,
     )
 
-    flags = configs.get("flags") or []
+    for i in configs.get("call_guards", []):
+        cppygen.add_call_guard(i)
 
-    for i in configs.get("include_directories") or []:
+    flags = configs.get("flags", [])
+
+    for i in configs.get("include_directories", []):
         flags.append(f"-I{str(cwd.joinpath(i).absolute())}")
 
     flags.extend([i for i in (args.flags or "").split(";")])
@@ -80,10 +83,10 @@ def run():
 
     if mode == "source":
         for i in sources:
-            cppygen.parse_from_file(i, lang="cpp", flags=configs.get("flags") or [])
+            cppygen.parse_from_file(i, lang="cpp", flags=configs.get("flags", []))
 
         for i in headers:
-            cppygen.parse_from_file(i, lang="hpp", flags=configs.get("flags") or [])
+            cppygen.parse_from_file(i, lang="hpp", flags=configs.get("flags", []))
     else:
         cppygen.parse(
             source="\n".join([f"#include<{i}>" for i in headers]),

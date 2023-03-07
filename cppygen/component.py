@@ -16,6 +16,7 @@ class Function(object):
         self._description = ""
         self._module: str | None = None
         self._pyname: str | None = None
+        self._call_guards: List[str] = []
 
     def set_name(self, name: str, namespace: List[str]):
         self._name = name
@@ -24,6 +25,9 @@ class Function(object):
 
     def set_return_type(self, type: str):
         self._return_type = type
+
+    def add_call_guard(self, call_guard: str):
+        self._call_guards.append(call_guard)
 
     def set_argument_types(self, types: List[Tuple[str, str]]):
         """
@@ -62,12 +66,12 @@ class Function(object):
                 f'{self._module}.def("{self._pyname}", '
                 f'static_cast<{self._return_type} (*)({", ".join([i[1] for i in self._arguments])})>'
                 f'(&{self._full_name}), "{self._description}"'
-                f'{"".join(args)});'
+                f"""{"".join(args)}{f", pybind11::call_guard<{', '.join(self._call_guards)}>()" if len(self._call_guards) > 0 else ""});"""
             )
         else:
             return (
                 f'{self._module}.def("{self._pyname}", &{self._full_name}, "{self._description}"'
-                f'{"".join(args)});'
+                f"""{"".join(args)}{f", pybind11::call_guard<{', '.join(self._call_guards)}>()" if len(self._call_guards) > 0 else ""});"""
             )
 
     def to_decl_string(self):
@@ -105,8 +109,9 @@ class StructOrClass:
         name: str
         pyname: str
         return_type: str
-        description: str
         args: List[Tuple[str, str]]
+        description: str
+        call_guards: List[str]
 
     def __init__(self):
         self._name: str | None = None
@@ -141,9 +146,10 @@ class StructOrClass:
         self,
         name: str,
         pyname: str | None,
-        type: str,
+        return_type: str,
         args: List[Tuple[str, str]],  # list[(name, type)]
         description: str = "",
+        call_guards: List[str] = [],
         private: bool = False,
     ):
         pyname = pyname or name
@@ -152,9 +158,10 @@ class StructOrClass:
                 {
                     "name": name,
                     "pyname": pyname,
-                    "return_type": type,
-                    "description": description,
+                    "return_type": return_type,
                     "args": args,
+                    "description": description,
+                    "call_guards": call_guards,
                 }
             )
 
@@ -193,11 +200,13 @@ class StructOrClass:
                     # overloaded funciton
                     f'\t\t.def("{i["pyname"]}", '
                     f'static_cast<{i["return_type"]} ({self._full_name}::*)({", ".join([j[1] for j in i["args"]])})>'
-                    f'(&{self._full_name}::{i["name"]}), "{i["description"]}")'
+                    f'(&{self._full_name}::{i["name"]}), "{i["description"]}"'
+                    f"""{f", pybind11::call_guard<{', '.join(i['call_guards'])}>()" if len(i['call_guards']) > 0 else ""})"""
                     if [j["name"] for j in self._member_funcs].count(i["name"]) > 1
                     # Non overloaded funciton
                     else f'\t\t.def("{i["pyname"]}",'
-                    f' &{self._full_name}::{i["name"]}, "{i["description"]}")'
+                    f' &{self._full_name}::{i["name"]}, "{i["description"]}"'
+                    f"""{f", pybind11::call_guard<{', '.join(i['call_guards'])}>()" if len(i['call_guards']) > 0 else ""})"""
                     for i in self._member_funcs
                 ]
             )
