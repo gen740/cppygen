@@ -44,7 +44,7 @@ def run():
             exit(1)
         for i in config_sources:
             sources.extend([j for j in cwd.glob(i)])
-    elif mode == "source":
+    elif mode == "header":
         if configs.get("sources"):
             logger.error("Do not set sources")
             exit(1)

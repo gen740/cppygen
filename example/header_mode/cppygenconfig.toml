@@ -1,0 +1,14 @@
+mode = "header"
+
+search_namespace = "Shell" # default: cppygen
+
+# class の定義が書かれた Shell namespace を持つ header の一覧: 重複は解決しない
+headers = ["shell/*.hpp"]
+
+# 出力ディレクトリ
+output_dir = "build"
+
+# ここでは shell 以下のヘッダーを source で include しているためそのことを宣言してあげる必要がある。
+include_directories = ["shell"]
+
+flags = ["-Wall"]
