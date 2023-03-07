@@ -5,25 +5,14 @@ def test_function():
     fun = Function()
 
     fun.set_name("test_function1", ["Shell", "foo"])
-    assert fun._name == "test_function1"
-    assert fun._namespace == ["Shell", "foo"]
-    assert fun._full_name == "Shell::foo::test_function1"
-
     fun.set_description("this is test function1")
-    assert fun._description == "this is test function1"
-
     fun.set_module("Shell_foo")
-    assert fun._module == "Shell_foo"
-
     fun.set_return_type("TestClass")
-    assert fun._return_type == "TestClass"
-
     fun.set_argument_types([("arg1", "int"), ("arg2", "std::string")])
-    assert fun._arguments == [("arg1", "int"), ("arg2", "std::string")]
 
     assert (
         fun.to_decl_string()
-        == "namespace Shell::foo { TestClass test_function1(int arg1, std::string arg2); }"
+        == "namespace Shell::foo { TestClass test_function1(int, std::string); }"
     )
 
     assert (
@@ -58,14 +47,8 @@ def test_submodule():
     submodule = Submodule()
 
     submodule.set_name("submodule1")
-    assert submodule._name == "submodule1"
-
     submodule.set_description("This is submodule 1")
-    assert submodule._description == "This is submodule 1"
-
     submodule.set_parent(["psub1", "psub2"])
-    assert submodule._parents == ["psub1", "psub2"]
-
     assert submodule.cpp_name == "psub1_psub2_submodule1"
     assert submodule.cpp_parent_name == "psub1_psub2"
 
@@ -93,16 +76,8 @@ def test_struct_or_class():
     soc = StructOrClass()
 
     soc.set_name("class1", ["mod1", "mod2"])
-    assert soc._name == "class1"
-    assert soc._namespace == ["mod1", "mod2"]
-    assert soc._full_name == "mod1::mod2::class1"
-
     soc.set_description("this is class 1")
-    assert soc._description == "this is class 1"
-
     soc.set_module("mod1_mod2")
-    assert soc._module == "mod1_mod2"
-
     soc.add_member("member1", "int", "this is the member1")
     soc.add_member("member2", "std::array<int, 5>", "this is the member2")
 

@@ -74,7 +74,7 @@ class Function(object):
         if self._name == None or self._full_name == None or self._module == None:
             print("Parse Error Skipping ...")
             return ""
-        args = [f"{i[1]} {i[0]}" for i in self._arguments]
+        args = [f"{i[1]}" for i in self._arguments]
         return (
             f'namespace {"::".join(self._namespace)} '
             f'{{ {self._return_type} {self._name}({", ".join(args)}); }}'

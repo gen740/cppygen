@@ -8,9 +8,9 @@
 
 /* Function Declarations Start */
 namespace cppygen { void f(); }
-namespace cppygen { int g(int a, int b); }
-namespace cppygen { void h(std::string ); }
-namespace cppygen { void i(std::vector<double> ); }
+namespace cppygen { int g(int, int); }
+namespace cppygen { void h(std::string); }
+namespace cppygen { void i(std::vector<double>); }
 /* Function Declarations End */
 
 
