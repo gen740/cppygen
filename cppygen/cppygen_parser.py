@@ -3,7 +3,13 @@ import os
 import re
 from typing import List, Literal
 
-from clang.cindex import AccessSpecifier, Config, Cursor, CursorKind, TranslationUnit
+from cppygen._clang.cindex import (
+    AccessSpecifier,
+    Config,
+    Cursor,
+    CursorKind,
+    TranslationUnit,
+)
 
 from .component import Function, StructOrClass, Submodule
 from .logging import get_logger
