@@ -121,6 +121,6 @@ This function will export to python as "py_foo".
 ## Env
 
 ```bash
-PYGEN_LIBCLANG_PATH # Path to clang shared library
-PYGEN_COMPILE_FLAGS # additional flags to parse file
+CPPYGEN_LIBCLANG_PATH # Path to clang shared library. (e.g. /usr/lib/llvm-15/lib/libclang-15.so)
+CPPYGEN_COMPILE_FLAGS # additional flags to parse file
 ```
