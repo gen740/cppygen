@@ -100,51 +100,76 @@ class Parser:
                     if j.kind == CursorKind.PARM_DECL:  # type: ignore
                         func.add_argument_type((j.spelling, j.type.spelling))
                 if self._verbose:
-                    print("\t| Function  | " + func.signature())
+                    print("\t| Function    | " + func.signature())
                 if not func in self._functions:
                     self._functions.append(func)
 
     def _extract_struct_and_class(
         self, cu: Cursor, namespace: List[str], module_name: str
     ):
+        def visit(i: Cursor, namespace: List[str]):
+            struct_or_class = StructOrClass()
+            struct_or_class.set_name(i.spelling, namespace)
+            struct_or_class.set_module(module_name)
+            struct_or_class.set_description(i.brief_comment or "")
+            if self._verbose:
+                print("\t| Class       | " + struct_or_class.signature())
+            for j in list(i.get_children()):
+                j: Cursor
+                if j.kind == CursorKind.CXX_BASE_SPECIFIER:  # type: ignore
+                    struct_or_class.add_base_class(j.spelling)
+                if j.kind == CursorKind.STRUCT_DECL or j.kind == CursorKind.CLASS_DECL:  # type: ignore
+                    visit(j, [*namespace, i.spelling])
+                if j.kind == CursorKind.FIELD_DECL:  # type: ignore
+                    # メンバー変数の抽出
+                    struct_or_class.add_member(
+                        j.spelling,
+                        j.type.spelling,
+                        j.brief_comment or "",
+                        j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
+                    )
+                    if self._verbose:
+                        print(
+                            "\t| ClassMember | "
+                            + "::".join([*namespace, i.spelling])
+                            + "  "
+                            + j.type.spelling
+                            + " "
+                            + j.spelling
+                        )
+                elif j.kind == CursorKind.CXX_METHOD:  # type: ignore
+                    # メンバー関数の抽出
+                    args = []
+                    for k in list(j.get_children()):
+                        if k.kind == CursorKind.PARM_DECL:  # type: ignore
+                            args.append((k.spelling, k.type.spelling))
+                    (pyname, description) = _extract_comment_string(j.raw_comment or "")
+                    struct_or_class.add_member_func(
+                        name=j.spelling,
+                        pyname=pyname,
+                        return_type=j.result_type.spelling,
+                        args=args,
+                        description=description or "",
+                        call_guards=self._call_guards,
+                        private=j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
+                    )
+                    if self._verbose:
+                        print(
+                            "\t| ClassMethod | "
+                            + "::".join([*namespace, i.spelling])
+                            + "::"
+                            + j.spelling
+                            + "("
+                            + ", ".join([f"{k[0]} {k[1]}" for k in args])
+                            + ") -> "
+                            + j.result_type.spelling
+                        )
+            self._structs_and_classes.append(struct_or_class)
+
+        i: Cursor
         for i in list(cu.get_children()):
-            i: Cursor
             if i.kind == CursorKind.STRUCT_DECL or i.kind == CursorKind.CLASS_DECL:  # type: ignore
-                struct_or_class = StructOrClass()
-                struct_or_class.set_name(i.spelling, namespace)
-                struct_or_class.set_module(module_name)
-                struct_or_class.set_description(i.brief_comment or "")
-                for j in list(i.get_children()):
-                    j: Cursor
-                    if j.kind == CursorKind.FIELD_DECL:  # type: ignore
-                        # メンバー変数の抽出
-                        struct_or_class.add_member(
-                            j.spelling,
-                            j.type.spelling,
-                            j.brief_comment or "",
-                            j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
-                        )
-                    elif j.kind == CursorKind.CXX_METHOD:  # type: ignore
-                        # メンバー関数の抽出
-                        args = []
-                        for k in list(j.get_children()):
-                            if k.kind == CursorKind.PARM_DECL:  # type: ignore
-                                args.append((k.spelling, k.type.spelling))
-                        (pyname, description) = _extract_comment_string(
-                            j.raw_comment or ""
-                        )
-                        struct_or_class.add_member_func(
-                            name=j.spelling,
-                            pyname=pyname,
-                            return_type=j.result_type.spelling,
-                            args=args,
-                            description=description or "",
-                            call_guards=self._call_guards,
-                            private=j.access_specifier == AccessSpecifier.PRIVATE,  # type: ignore
-                        )
-                if self._verbose:
-                    print("\t| Class     | " + struct_or_class.signature())
-                self._structs_and_classes.append(struct_or_class)
+                visit(i, namespace)
 
     def add_hpp_includes(self, hpp: str):
         self._hpp_includes.append(hpp)
@@ -198,7 +223,7 @@ class Parser:
                         submod.set_parent(copy.deepcopy(namespace_in))
                         if not submod in self._submodules:
                             if self._verbose:
-                                print(f"\t| Submodule | {submod.cpp_name}")
+                                print(f"\t| Submodule   | {submod.cpp_name}")
                             self._submodules.append(submod)
                         namespace_in.append(i.spelling)
                         visit(i, namespace_in, submod.cpp_name)

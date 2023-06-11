@@ -40,6 +40,6 @@ int add_(int x, int y) { return x + y; }
 
 } // namespace hogehoge
 
-Shell::VectorD return_vector(Shell::VectorD a) { return a; }
+std::vector<double> return_vector(std::vector<double> a) { return a; }
 
 } // namespace Shell

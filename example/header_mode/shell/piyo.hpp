@@ -11,4 +11,5 @@ struct Piyoyo {
 
 std::vector<double> fugafuga();
 
+
 } // namespace Shell

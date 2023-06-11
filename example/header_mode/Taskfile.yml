@@ -1,0 +1,17 @@
+# https://taskfile.dev
+
+version: '3'
+
+env:
+
+  CPPYGEN_COMPILE_FLAGS: -isystem/usr/local/opt/llvm/bin/../include/c++/v1 -isystem/usr/local/Cellar/llvm/16.0.5/lib/clang/16/include -isystem/Library/Developer/CommandLineTools/SDKs/MacOSX13.sdk/usr/include
+  CPPYGEN_LIBCLANG_PATH: /usr/local/opt/llvm/lib/libclang.dylib
+
+
+tasks:
+  cmake:
+    cmds:
+      - env "CXX=/usr/local/opt/llvm/bin/clang++" cmake -B build -S . -GNinja
+  compile:
+    cmds:
+      - cmake --build build

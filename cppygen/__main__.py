@@ -88,10 +88,13 @@ def run():
         for i in headers:
             cppygen.parse_from_file(i, lang="hpp", flags=configs.get("flags", []))
     else:
+        with_diagnostic = configs.get("diagnostic", False)
         cppygen.parse(
             source="\n".join([f"#include<{i}>" for i in headers]),
             filename="tmp.hpp",
             lang="hpp",
+            with_diagnostic=with_diagnostic,
+            flags=flags,
             mode="header",
         )
 
