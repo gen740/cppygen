@@ -188,7 +188,7 @@ class StructOrClass:
         return (
             f"pybind11::class_<"
             + ", ".join([f"::{self._full_name}", *self._base_classes])
-            + "> "
+            + ">"
             + f'({self._module}, "{self._name}")\n'
             "\t\t.def(pybind11::init())"
             # Declare members.

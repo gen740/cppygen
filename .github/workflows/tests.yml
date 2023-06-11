@@ -28,25 +28,25 @@ jobs:
       run: |
         pip install -U pip
 
-    - name: Install llvm-14 and llvm-15
+    - name: Install llvm-15 and llvm-16
       run: |
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
-        sudo ./llvm.sh 14 all
         sudo ./llvm.sh 15 all
+        sudo ./llvm.sh 16 all
 
     - name: Install
       run: |
         pip install .
-
-    - name: Tests (llvm-14)
-      run: |
-        pytest
-      env:
-        CPPYGEN_LIBCLANG_PATH: /usr/lib/llvm-14/lib/libclang.so
 
     - name: Tests (llvm-15)
       run: |
         pytest
       env:
         CPPYGEN_LIBCLANG_PATH: /usr/lib/llvm-15/lib/libclang.so
+
+    - name: Tests (llvm-16)
+      run: |
+        pytest
+      env:
+        CPPYGEN_LIBCLANG_PATH: /usr/lib/llvm-16/lib/libclang.so
