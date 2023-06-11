@@ -115,6 +115,7 @@ class StructOrClass:
 
     def __init__(self):
         self._name: str | None = None
+        self._base_classes: List[str] = []
         self._namespace: List[str] = []
         self._members: list[Dict[str, str]] = []
         self._member_funcs: list[StructOrClass.MemberFunctionSignature] = []
@@ -141,6 +142,9 @@ class StructOrClass:
                     "description": description,
                 }
             )
+
+    def add_base_class(self, name: str):
+        self._base_classes.append(name)
 
     def add_member_func(
         self,
@@ -182,7 +186,10 @@ class StructOrClass:
             print("Parse Error Skipping ...")
             return ""
         return (
-            f'pybind11::class_<::{self._full_name}>({self._module}, "{self._name}")\n'
+            f"pybind11::class_<"
+            + ", ".join([f"::{self._full_name}", *self._base_classes])
+            + "> "
+            + f'({self._module}, "{self._name}")\n'
             "\t\t.def(pybind11::init())"
             # Declare members.
             + "\n".join(

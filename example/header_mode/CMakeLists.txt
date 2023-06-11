@@ -15,7 +15,12 @@ find_package(pybind11 CONFIG)
 # Auto Generation
 set(cppygen_generated_hpp ${CMAKE_CURRENT_BINARY_DIR}/cppygen_generated.hpp)
 set(cppygen_generated_cpp ${CMAKE_CURRENT_BINARY_DIR}/cppygen_generated.cpp)
-set(cppygen_config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig.toml)
+
+if(APPLE)
+  set(cppygen_config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig_apple.toml)
+else()
+  set(cppygen_config_file ${CMAKE_CURRENT_LIST_DIR}/cppygenconfig_linux.toml)
+endif()
 
 find_program(_CPPYGEN_GENERATOR cppygen)
 message(${cppygen_config_file})

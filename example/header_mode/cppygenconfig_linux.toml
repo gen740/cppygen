@@ -12,3 +12,5 @@ output_dir = "build"
 include_directories = ["shell"]
 
 flags = ["-Wall"]
+
+diagnostic = true
