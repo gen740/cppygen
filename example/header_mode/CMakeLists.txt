@@ -48,6 +48,12 @@ set_target_properties(
              VISIBILITY_INLINES_HIDDEN ON)
 
 add_custom_command(
+  TARGET pyshell
+  POST_BUILD
+  COMMAND ${CMAKE_CURRENT_LIST_DIR}/stubgen.sh
+  COMMENT "Generating pyshell stub file")
+
+add_custom_command(
   OUTPUT ${cppygen_generated_hpp} ${cppygen_generated_cpp}
   COMMAND
     ${_CPPYGEN_GENERATOR} ARGS #
