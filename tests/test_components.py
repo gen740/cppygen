@@ -1,4 +1,5 @@
-from cppygen.component import Function, StructOrClass, Submodule
+from cppygen.function import Function
+from cppygen.submodule import Submodule
 
 
 def test_function():

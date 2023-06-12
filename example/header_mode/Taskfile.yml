@@ -14,4 +14,4 @@ tasks:
       - env "CXX=/usr/local/opt/llvm/bin/clang++" cmake -B build -S . -GNinja
   compile:
     cmds:
-      - cmake --build build
+      - rm -rf ./build/cppygen_generated.cpp && cmake --build build

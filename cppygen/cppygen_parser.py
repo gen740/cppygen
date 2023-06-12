@@ -1,7 +1,7 @@
 import copy
 import os
 import re
-from typing import List, Literal
+from typing import Literal
 
 from cppygen._clang.cindex import (
     AccessSpecifier,
@@ -11,8 +11,10 @@ from cppygen._clang.cindex import (
     TranslationUnit,
 )
 
-from .component import Function, StructOrClass, Submodule
+from .cppclass import CppClass
+from .function import Function
 from .logging import get_logger
+from .submodule import Submodule
 
 logger = get_logger("parser")
 
@@ -30,13 +32,13 @@ class Parser:
         library_file: str | None = None,
         verbose: bool = False,
     ):
-        self._functions: List[Function] = []
-        self._submodules: List[Submodule] = []
-        self._structs_and_classes: List[StructOrClass] = []
-        self._hpp_includes: List[str] = []
+        self._functions: list[Function] = []
+        self._submodules: list[Submodule] = []
+        self._cpp_classes: list[CppClass] = []
+        self._hpp_includes: list[str] = []
         self._namespace = namespace or "cppygen"
         self._verbose = verbose
-        self._call_guards: List[str] = []
+        self._call_guards: list[str] = []
 
         if library_file != None and library_path != None:
             raise ValueError(f"Both library_path and library_file cannot be set.")
@@ -72,7 +74,7 @@ class Parser:
     def _extract_functions(
         self,
         cu: Cursor,
-        namespace: List[str],
+        namespace: list[str],
         module_name: str,
         mode: Literal["source"] | Literal["header"] = "source",
     ):
@@ -88,8 +90,10 @@ class Parser:
 
                 # extract comment string
                 raw_comment = i.raw_comment or ""
+                raw_comment = raw_comment.replace('"', '\\"')
+                # print("raw_comment", raw_comment)
 
-                pyname, description = _extract_comment_string(raw_comment)
+                pyname, description = _extract_comment_string(str(raw_comment))
 
                 if pyname is not None:
                     func.pyname = pyname
@@ -105,24 +109,36 @@ class Parser:
                     self._functions.append(func)
 
     def _extract_struct_and_class(
-        self, cu: Cursor, namespace: List[str], module_name: str
+        self, cu: Cursor, namespace: list[str], module_name: str
     ):
-        def visit(i: Cursor, namespace: List[str]):
-            struct_or_class = StructOrClass()
-            struct_or_class.set_name(i.spelling, namespace)
-            struct_or_class.set_module(module_name)
-            struct_or_class.set_description(i.brief_comment or "")
+        def visit(i: Cursor, namespace: list[str], is_template):
+            print(i.kind)
+            cpp_class = CppClass(
+                is_template,
+                copy.deepcopy([j for j in self._cpp_classes if j._is_template]),
+            )
+            cpp_class.set_name(i.spelling, namespace)
+            cpp_class.set_module(module_name)
+            cpp_class.set_description(i.brief_comment or "")
             if self._verbose:
-                print("\t| Class       | " + struct_or_class.signature())
+                print("\t| Class       | " + cpp_class.signature())
             for j in list(i.get_children()):
                 j: Cursor
                 if j.kind == CursorKind.CXX_BASE_SPECIFIER:  # type: ignore
-                    struct_or_class.add_base_class(j.spelling)
+                    if self._verbose:
+                        print(
+                            "\t| BaseClass   | "
+                            + "::".join([*namespace, i.spelling])
+                            + j.spelling
+                        )
+                    cpp_class.add_base_class(j.spelling)
                 if j.kind == CursorKind.STRUCT_DECL or j.kind == CursorKind.CLASS_DECL:  # type: ignore
-                    visit(j, [*namespace, i.spelling])
+                    visit(j, [*namespace, i.spelling], False)
+                if j.kind == CursorKind.CLASS_TEMPLATE:  # type: ignore
+                    visit(j, [*namespace, i.spelling], True)
                 if j.kind == CursorKind.FIELD_DECL:  # type: ignore
                     # メンバー変数の抽出
-                    struct_or_class.add_member(
+                    cpp_class.add_member(
                         j.spelling,
                         j.type.spelling,
                         j.brief_comment or "",
@@ -144,7 +160,7 @@ class Parser:
                         if k.kind == CursorKind.PARM_DECL:  # type: ignore
                             args.append((k.spelling, k.type.spelling))
                     (pyname, description) = _extract_comment_string(j.raw_comment or "")
-                    struct_or_class.add_member_func(
+                    cpp_class.add_member_func(
                         name=j.spelling,
                         pyname=pyname,
                         return_type=j.result_type.spelling,
@@ -164,12 +180,14 @@ class Parser:
                             + ") -> "
                             + j.result_type.spelling
                         )
-            self._structs_and_classes.append(struct_or_class)
+            self._cpp_classes.append(cpp_class)
 
         i: Cursor
         for i in list(cu.get_children()):
+            if i.kind == CursorKind.CLASS_TEMPLATE:  # type: ignore
+                visit(i, namespace, True)
             if i.kind == CursorKind.STRUCT_DECL or i.kind == CursorKind.CLASS_DECL:  # type: ignore
-                visit(i, namespace)
+                visit(i, namespace, False)
 
     def add_hpp_includes(self, hpp: str):
         self._hpp_includes.append(hpp)
@@ -202,7 +220,7 @@ class Parser:
             i: Cursor
 
             # Recursive Function
-            def visit(x: Cursor, namespace: List[str], module_name: str):
+            def visit(x: Cursor, namespace: list[str], module_name: str):
                 if mode == "source":
                     if lang == "cpp":
                         self._extract_functions(x, namespace, module_name)
@@ -275,7 +293,12 @@ class Parser:
             + "\t/* Function Export End */\n\n"
             + "\t/* Structs and Classes Export Start */\n"
             + "\n".join(
-                ["\t" + i.to_pybind_string() for i in self._structs_and_classes] + [""]
+                [
+                    "\t" + i.to_pybind_string()
+                    for i in self._cpp_classes
+                    if not i._is_template
+                ]
+                + [""]
             )
             + "\t/* Structs and Classes Export End */\n\n"
         )

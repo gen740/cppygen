@@ -1,4 +1,6 @@
 #!/bin/bash
 
-# このコマンドで stub を作る
-cd ./build &&  stubgen -p pyshell -o ../python/stubs
+SCRIPT_DIR=$(dirname "$(realpath "$0")")
+
+# Generate python stubs
+cd $SCRIPT_DIR/build && stubgen -p pyshell -o $SCRIPT_DIR/python/stubs
