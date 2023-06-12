@@ -53,7 +53,17 @@ public:
   }
 };
 
-template <class foo, class bar = int> struct FooBase {
+/******************************************************************************
+ * Class Inheritence
+ ******************************************************************************/
+
+struct AbstFooBase {
+public:
+  // virtual void hello() = 0;
+  virtual ~AbstFooBase() = default;
+};
+
+template <class foo, class bar = int> struct FooBase : public ::Shell::AbstFooBase {
 public:
   foo th() {
     std::cout << "Foo" << std::endl;
