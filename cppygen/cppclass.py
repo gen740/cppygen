@@ -16,17 +16,17 @@ class CppClass:
         description: str
         call_guards: list[str]
 
-    def __init__(self, is_template=False, defined_template_classes=[]):
+    def __init__(self, is_template=False):
         self._name: str | None = None
         self._sanitized_name: str | None = None
-        self._base_classes: list[CppClass] = []
+        self._base_classes: list[str] = []
         self._namespace: list[str] = []
         self._members: list[dict[str, str]] = []
         self._member_funcs: list[CppClass.MemberFunctionSignature] = []
         self._module: str | None = None
         self._description = ""
         self._is_template = is_template
-        self._defined_template_classes: list[CppClass] = defined_template_classes
+        # self._defined_template_classes: list[CppClass] = defined_template_classes
         self._template_parameter: list[tuple[str, str | None]] = []
 
     def set_name(self, name: str, namespace: list[str] | None = None):
@@ -53,11 +53,7 @@ class CppClass:
             )
 
     def add_base_class(self, name: str):
-        for i in self._defined_template_classes:
-            if i._full_name in name:
-                base_class = copy.deepcopy(i)
-                base_class.set_name(name.split("::")[-1])
-                self._base_classes.append(base_class)
+        self._base_classes.append(name)
 
     def add_member_func(
         self,
@@ -99,13 +95,9 @@ class CppClass:
             print("Parse Error Skipping ...")
             return ""
         return (
-            # BaseClass
-            "\n".join([i.to_pybind_string() for i in self._base_classes]) + "\n"
             # Class
-            + f"pybind11::class_<"
-            + ", ".join(
-                [f"::{self._full_name}", *[i._full_name for i in self._base_classes]]
-            )
+            f"pybind11::class_<"
+            + ", ".join([f"::{self._full_name}", *self._base_classes])
             + ">"
             + f'({self._module}, "{self._sanitized_name}")\n'
             "\t\t.def(pybind11::init())"
@@ -140,3 +132,9 @@ class CppClass:
 
     def signature(self) -> str:
         return f"{self._full_name}"
+
+    def __eq__(self, obj):
+        if isinstance(obj, CppClass):
+            return self._full_name == obj._full_name
+        else:
+            return False

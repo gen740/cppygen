@@ -35,6 +35,8 @@ class Parser:
         self._functions: list[Function] = []
         self._submodules: list[Submodule] = []
         self._cpp_classes: list[CppClass] = []
+        self._export_classes: list[CppClass] = []
+        self._cpp_template_classes: list[CppClass] = []
         self._hpp_includes: list[str] = []
         self._namespace = namespace or "cppygen"
         self._verbose = verbose
@@ -113,10 +115,7 @@ class Parser:
     ):
         def visit(i: Cursor, namespace: list[str], is_template):
             print(i.kind)
-            cpp_class = CppClass(
-                is_template,
-                copy.deepcopy([j for j in self._cpp_classes if j._is_template]),
-            )
+            cpp_class = CppClass(is_template)
             cpp_class.set_name(i.spelling, namespace)
             cpp_class.set_module(module_name)
             cpp_class.set_description(i.brief_comment or "")
@@ -132,6 +131,16 @@ class Parser:
                             + j.spelling
                         )
                     cpp_class.add_base_class(j.spelling)
+                    teplate_declares = copy.deepcopy(
+                        [j for j in self._cpp_classes if j._is_template]
+                    )
+
+                    for k in teplate_declares:
+                        if k._full_name in j.spelling:
+                            base_class = copy.deepcopy(k)
+                            base_class.set_name(j.spelling.split("::")[-1])
+                            if base_class not in self._export_classes:
+                                self._export_classes.append(base_class)
                 if j.kind == CursorKind.STRUCT_DECL or j.kind == CursorKind.CLASS_DECL:  # type: ignore
                     visit(j, [*namespace, i.spelling], False)
                 if j.kind == CursorKind.CLASS_TEMPLATE:  # type: ignore
@@ -181,6 +190,8 @@ class Parser:
                             + j.result_type.spelling
                         )
             self._cpp_classes.append(cpp_class)
+            if not cpp_class._is_template:
+                self._export_classes.append(cpp_class)
 
         i: Cursor
         for i in list(cu.get_children()):
@@ -293,12 +304,7 @@ class Parser:
             + "\t/* Function Export End */\n\n"
             + "\t/* Structs and Classes Export Start */\n"
             + "\n".join(
-                [
-                    "\t" + i.to_pybind_string()
-                    for i in self._cpp_classes
-                    if not i._is_template
-                ]
-                + [""]
+                ["\t" + i.to_pybind_string() for i in self._export_classes] + [""]
             )
             + "\t/* Structs and Classes Export End */\n\n"
         )
