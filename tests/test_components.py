@@ -1,5 +1,6 @@
 from cppygen.function import Function
 from cppygen.submodule import Submodule
+from cppygen.cppclass import CppClass
 
 
 def test_function():
@@ -88,7 +89,7 @@ def test_submod_compare():
 
 
 def test_struct_or_class():
-    soc = StructOrClass()
+    soc = CppClass()
 
     soc.set_name("class1", ["mod1", "mod2"])
     soc.set_description("this is class 1")
