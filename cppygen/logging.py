@@ -13,7 +13,7 @@ def create_default_formatter() -> colorlog.ColoredFormatter:
     return colorlog.ColoredFormatter(
         "%(log_color)s%(message)s",
         no_color=False if _color_supported() else True,
-        stream=sys.stdout
+        stream=sys.stdout,
     )
 
 
