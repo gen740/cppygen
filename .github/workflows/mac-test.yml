@@ -34,6 +34,7 @@ jobs:
 
     - name: Install llvm
       run: |
+        brew update && brew upgrade
         brew install llvm
 
     - name: Install
