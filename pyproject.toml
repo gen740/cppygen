@@ -8,7 +8,7 @@ pythonPlatform = "Darwin"
 
 [tool.poetry]
 name = "cppygen"
-version = "0.1.8"
+version = "0.1.9.dev"
 description = "A simple c++ code generator for pybind11"
 readme = "README.md"
 authors = ["Gen740 <keener_slimier_0m@icloud.com>"]
