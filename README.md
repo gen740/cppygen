@@ -72,6 +72,9 @@ sources.
 Paths with `cppygen` will parse.`cppygen` can extract structs or classes from
 headers.
 
+**diagnostic** [boolean]
+Default is "True". An option for outputting diagnostics and detecting errors during parsing.
+
 **output_dir** [path, **required**]
 Output directory of generated code.
 
